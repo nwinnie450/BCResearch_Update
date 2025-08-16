@@ -22,15 +22,20 @@ def load_schedules() -> List[Dict]:
     except (json.JSONDecodeError, FileNotFoundError):
         return []
 
-def save_schedules(items: List[Dict]) -> None:
+def save_schedules(items: List[Dict]) -> bool:
     """Save schedules to persistent storage with atomic write"""
-    _ensure_dir()
-    tmp = STORE_PATH + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, STORE_PATH)
+    try:
+        _ensure_dir()
+        tmp = STORE_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(items, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, STORE_PATH)
+        return True
+    except Exception as e:
+        print(f"Error saving schedules: {e}")
+        return False
 
 def new_schedule_id() -> str:
     """Generate unique schedule ID"""
@@ -50,8 +55,7 @@ def update_schedule(schedule_id: str, updates: Dict) -> bool:
     for i, sched in enumerate(schedules):
         if sched.get("id") == schedule_id:
             schedules[i].update(updates)
-            save_schedules(schedules)
-            return True
+            return save_schedules(schedules)
     return False
 
 def delete_schedule(schedule_id: str) -> bool:
@@ -60,6 +64,5 @@ def delete_schedule(schedule_id: str) -> bool:
     for i, sched in enumerate(schedules):
         if sched.get("id") == schedule_id:
             schedules.pop(i)
-            save_schedules(schedules)
-            return True
+            return save_schedules(schedules)
     return False

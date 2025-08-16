@@ -80,6 +80,14 @@ def load_custom_css():
       opacity: .95;
       font-size: 12.5px;
     }
+    .banner {
+      margin-bottom: 10px !important;
+    }
+    
+    /* Collapse any empty header action containers */
+    .header-actions:empty { 
+      display: none !important; 
+    }
     
     /* HORIZONTAL NAVIGATION TABS */
     .nav-tabs {

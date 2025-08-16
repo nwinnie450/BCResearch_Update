@@ -4,8 +4,8 @@ Header Component for Blockchain Research AI Agent
 import streamlit as st
 from config import APP_TITLE, APP_DESCRIPTION, VERSION
 
-def render_header():
-    """Render the main application header - Ethereum-style centered banner"""
+def render_banner(actions_fn=None):
+    """Render Ethereum-style centered banner with optional actions"""
     
     st.markdown(f"""
     <div class="banner">
@@ -18,3 +18,13 @@ def render_header():
       </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Only render an actions column when actions exist
+    if actions_fn:
+        col_gap, col_actions = st.columns([0.80, 0.20])
+        with col_actions:
+            actions_fn()  # e.g., draw a real button/search here
+
+def render_header(actions_fn=None):
+    """Legacy function for backwards compatibility"""
+    render_banner(actions_fn)

@@ -44,15 +44,10 @@ def main():
     
     # Check if auto fetcher should be shown
     if hasattr(st.session_state, 'show_auto_fetcher') and st.session_state.show_auto_fetcher:
-        # Add a back button at the top
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            if st.button("⬅️ Back to Proposals", type="secondary", use_container_width=True):
-                st.session_state.show_auto_fetcher = False
-                st.rerun()
-        
-        with col2:
-            st.empty()  # Just for spacing
+        # Add a back button at the top (no empty column needed)
+        if st.button("⬅️ Back to Proposals", type="secondary"):
+            st.session_state.show_auto_fetcher = False
+            st.rerun()
         
         # Add some space
         st.markdown("---")
@@ -84,7 +79,7 @@ def render_home_page():
     # Compact top toolbar with no overflow buttons  
     st.markdown("### 🚀 Quick Start - Improvement Proposals & L1 Analysis")
     
-    c1, c2, c3, _ = st.columns([0.26, 0.26, 0.26, 0.22])
+    c1, c2, c3 = st.columns([0.33, 0.33, 0.34])
     
     with c1:
         if st.button("📚 Browse TIPs", use_container_width=True):

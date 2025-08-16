@@ -12,7 +12,7 @@ def render_sidebar():
         # Simple radio button navigation (fallback if streamlit-option-menu not available)
         selected = st.radio(
             "Choose a page:",
-            ["🏠 Home", "💬 Chat", "📊 Compare", "📈 Analytics", "📋 Proposals"],
+            ["🏠 Home", "💬 Chat", "📊 Compare", "📈 Analytics", "📋 Proposals", "📅 Schedule Manager"],
             index=0,
             label_visibility="collapsed"
         )

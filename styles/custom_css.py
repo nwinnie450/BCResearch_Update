@@ -6,13 +6,70 @@ import streamlit as st
 from config import COLORS
 
 def load_custom_css():
-    """Load custom CSS styles for the application"""
+    """Load ultra-compact CSS styles for the application"""
     
     css = f"""
     <style>
     /* Import Inter font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    /* ====== GLOBAL WHITE-SPACE TIGHTENING ====== */
+    main [data-testid="block-container"], .block-container {{
+      padding-top: 8px !important;
+      padding-bottom: 10px !important;
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+      max-width: 100% !important;   /* kill centered narrow layout */
+    }}
+
+    /* Headline spacing + single line */
+    h1, h2, h3 {{ margin-top: .4rem !important; margin-bottom: .6rem !important; white-space: nowrap; }}
+
+    /* Remove default vertical gaps between Streamlit blocks */
+    div[data-testid="stVerticalBlock"] > div {{ margin-bottom: 6px !important; }}
+
+    /* Columns tighter */
+    [data-testid="column"] {{ padding-left: 6px !important; padding-right: 6px !important; }}
+
+    /* Tables edge-to-edge + compact cells */
+    [data-testid="stTable"] table {{ width: 100% !important; }}
+    [data-testid="stTable"] th, [data-testid="stTable"] td {{ padding: 6px 8px !important; }}
+
+    /* ====== SIDEBAR: MAKE IT SLIM + FIX BUTTON OVERFLOW ====== */
+    [data-testid="stSidebar"] {{
+      min-width: 190px !important;
+      max-width: 190px !important;   /* adjust to taste */
+    }}
+    [data-testid="stSidebar"] > div:first-child {{ padding: 8px 6px !important; }}
+
+    /* Sidebar section headers tighter */
+    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{
+      margin: 6px 0 6px 0 !important;
+    }}
+
+    /* Sidebar radio/checkbox rows tighter */
+    [data-testid="stSidebar"] label {{ margin-bottom: 2px !important; }}
+
+    /* Quick Actions buttons: smaller font, single line, no overflow */
+    [data-testid="stSidebar"] .stButton > button {{
+      width: 100% !important;
+      font-size: 12px !important;
+      line-height: 1.1 !important;
+      padding: 6px 8px !important;
+      border-radius: 8px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }}
+
+    /* Give the Quick Actions button row a fixed height so the blue box fits the text */
+    [data-testid="stSidebar"] .stButton {{ margin-bottom: 6px !important; }}
+
+    /* ====== HEADER ROW: REMOVE DEAD SPACE ON THE RIGHT ====== */
+    .header-row {{ display: flex; align-items: center; justify-content: space-between; gap: 8px; }}
+    .header-left  {{ display:flex; align-items:center; gap:10px; }}
+    .header-right > * {{ margin-left: 8px; }}
     
     /* GRID SYSTEM - Compact layout */
     :root {{

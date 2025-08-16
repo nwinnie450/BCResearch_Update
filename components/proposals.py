@@ -23,6 +23,31 @@ def render_proposals_interface():
             st.rerun()
         st.success("🚀 Scrapped Data")
     
+    # Auto fetcher integration section
+    st.markdown("---")
+    st.markdown("#### 🤖 Auto Proposal Fetcher")
+    st.markdown("Configure automatic proposal fetching with developer notifications")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("""
+        **Features:**
+        - ⏰ **Scheduled fetching** every 15 minutes to 24 hours
+        - 🔔 **Multi-channel notifications** (Email, Discord, Slack, Desktop)
+        - 📅 **Business hours scheduling** with timezone support
+        - 📊 **Real-time monitoring** of new proposals
+        - 🚀 **Background operation** with manual controls
+        """)
+    
+    with col2:
+        if st.button("⚙️ Configure Auto Fetcher", type="primary", use_container_width=True):
+            # This will be handled by the main app to switch to auto fetcher page
+            st.session_state.show_auto_fetcher = True
+            st.rerun()
+    
+    st.markdown("---")
+    
     # Proposal type and status filter section
     with st.expander("⚙️ Filter Options", expanded=True):
         col1, col2 = st.columns(2)

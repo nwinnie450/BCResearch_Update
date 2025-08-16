@@ -71,7 +71,7 @@ def load_custom_css():
     .banner h2 {
       margin: 0;
       font-weight: 700;
-      font-size: 22px;
+      font-size: 26px;
       letter-spacing: .2px;
       white-space: nowrap;
       overflow: hidden;
@@ -80,17 +80,18 @@ def load_custom_css():
     @media (max-width: 900px) {
       .banner h2 { 
         white-space: normal; 
+        font-size: 22px;
       }
     }
     .banner .protocols {
       color: rgba(255,255,255,0.95);
-      font-size: 14px;
-      margin: 4px 0;
+      font-size: 16px;
+      margin: 6px 0;
       font-weight: 500;
     }
     .banner .sub {
       opacity: .95;
-      font-size: 12.5px;
+      font-size: 14px;
     }
     .banner {
       margin-bottom: 10px !important;

@@ -99,23 +99,23 @@ def render_home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # Quick action cards focused on Improvement Proposals and L1 protocols - compact
+    # Compact top toolbar with no overflow buttons  
     st.markdown("### 🚀 Quick Start - Improvement Proposals & L1 Analysis")
     
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3, _ = st.columns([0.26, 0.26, 0.26, 0.22])
     
-    with col1:
-        if st.button("📋 Browse TIPs", use_container_width=True):
+    with c1:
+        if st.button("📚 Browse TIPs", use_container_width=True):
             st.session_state.current_page = "📋 Proposals"
             st.rerun()
     
-    with col2:
+    with c2:
         if st.button("🔗 Latest EIPs", use_container_width=True):
             st.session_state.selected_use_case = "eips"
             st.session_state.current_page = "💬 Chat"
             st.rerun()
     
-    with col3:
+    with c3:
         if st.button("⚡ L1 Performance", use_container_width=True):
             st.session_state.selected_use_case = "l1_performance"
             st.session_state.current_page = "💬 Chat"

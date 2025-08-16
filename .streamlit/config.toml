@@ -1,7 +1,7 @@
 [theme]
-primaryColor = "#3B82F6"
+primaryColor = "#627EEA"                # Ethereum blue
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F7F8FA"
+secondaryBackgroundColor = "#F7F9FC"
 textColor = "#0F172A"
 font = "sans serif"
 

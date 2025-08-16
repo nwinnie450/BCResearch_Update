@@ -18,12 +18,21 @@ import logging
 # Email imports with fallback handling
 try:
     import smtplib
-    from email.mime.text import MimeText
-    from email.mime.multipart import MimeMultipart
+    import email.mime.text
+    import email.mime.multipart
+    from email.mime.text import MIMEText as MimeText
+    from email.mime.multipart import MIMEMultipart as MimeMultipart
     EMAIL_AVAILABLE = True
 except ImportError:
-    EMAIL_AVAILABLE = False
-    print("Warning: Email functionality not available due to import error")
+    try:
+        # Alternative import approach
+        import smtplib
+        from email.mime.text import MIMEText as MimeText
+        from email.mime.multipart import MIMEMultipart as MimeMultipart
+        EMAIL_AVAILABLE = True
+    except ImportError:
+        EMAIL_AVAILABLE = False
+        print("Warning: Email functionality not available due to import error")
 
 # Timezone and cron imports with fallback
 try:

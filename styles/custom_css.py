@@ -124,6 +124,50 @@ def load_custom_css():
       display: none !important;
     }
     
+    /* NUCLEAR OPTION: Eliminate ALL unnecessary spacing */
+    .main .block-container > div:nth-child(1) {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    .main .block-container > div:nth-child(2) {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    .main .block-container > div:nth-child(3) {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    
+    /* Hide any div that only contains whitespace */
+    .main .block-container > div:empty {
+      display: none !important;
+    }
+    
+    /* If it's a spacing div between banner and tabs, remove it */
+    .banner + div:empty {
+      display: none !important;
+    }
+    .banner + div + div:empty {
+      display: none !important;
+    }
+    
+    /* Navigation buttons right after banner */
+    .banner + [data-testid="column"] .stButton > button {
+      background: rgba(98, 126, 234, 0.1) !important;
+      color: var(--eth-blue) !important;
+      border: 1px solid rgba(98, 126, 234, 0.2) !important;
+      font-weight: 500 !important;
+      font-size: 13px !important;
+      padding: 8px 12px !important;
+      border-radius: 8px !important;
+      margin: 2px !important;
+    }
+    .banner + [data-testid="column"] .stButton > button:hover {
+      background: rgba(98, 126, 234, 0.2) !important;
+      border: 1px solid rgba(98, 126, 234, 0.4) !important;
+      color: var(--eth-blue-dark) !important;
+    }
+    
     .nav-tabs .stButton > button {
       background: transparent !important;
       color: var(--eth-blue) !important;

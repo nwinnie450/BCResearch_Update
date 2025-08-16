@@ -1,0 +1,55 @@
+[
+  {
+    "id": "20241216_090000",
+    "name": "Daily Morning Check",
+    "frequency": "Daily (Every day)",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "days_display": "Every day",
+    "time": "9:00 AM",
+    "time_24h": "09:00",
+    "enabled": true,
+    "created_date": "2024-12-16",
+    "created_at": "2024-12-16T09:00:00"
+  },
+  {
+    "id": "20241216_130000",
+    "name": "Weekday Afternoon Check",
+    "frequency": "Weekdays (Monday-Friday)",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "days_display": "Monday-Friday",
+    "time": "1:00 PM",
+    "time_24h": "13:00",
+    "enabled": true,
+    "created_date": "2024-12-16",
+    "created_at": "2024-12-16T13:00:00"
+  },
+  {
+    "id": "20241216_100000",
+    "name": "Custom Weekend Check",
+    "frequency": "Custom (Select specific days)",
+    "days": [
+      "Saturday",
+      "Sunday"
+    ],
+    "days_display": "Saturday, Sunday",
+    "time": "10:00 AM",
+    "time_24h": "10:00",
+    "enabled": true,
+    "created_date": "2024-12-16",
+    "created_at": "2024-12-16T10:00:00"
+  }
+]

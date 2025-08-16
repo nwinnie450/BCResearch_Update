@@ -21,7 +21,6 @@ from components.dashboard import render_dashboard
 from components.comparison import render_comparison
 from components.analytics import render_analytics
 from components.proposals import render_proposals_interface
-from components.auto_fetcher_interface import render_auto_fetcher_interface
 from styles.custom_css import load_custom_css
 
 def main():
@@ -39,19 +38,6 @@ def main():
     # Render header with fully integrated navigation (no separate containers)
     selected_page = render_banner_with_nav()
     
-    # Check if auto fetcher should be shown
-    if hasattr(st.session_state, 'show_auto_fetcher') and st.session_state.show_auto_fetcher:
-        # Add a back button at the top (no empty column needed)
-        if st.button("⬅️ Back to Proposals", type="secondary"):
-            st.session_state.show_auto_fetcher = False
-            st.rerun()
-        
-        # Add some space
-        st.markdown("---")
-        
-        # Render the auto fetcher interface
-        render_auto_fetcher_interface()
-        return
     
     # Main content area - full width
     if selected_page == "🏠 Home":
@@ -65,8 +51,8 @@ def main():
     elif selected_page == "📋 Proposals":
         render_proposals_interface()
     elif selected_page == "📅 Schedule":
-        from components.schedule_manager_improved import render_improved_schedule_manager
-        render_improved_schedule_manager()
+        from components.simple_schedule_manager import render_simple_schedule_manager
+        render_simple_schedule_manager()
     else:
         render_home_page()
 

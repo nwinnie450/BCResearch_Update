@@ -34,7 +34,7 @@ def save_schedules(items: List[Dict]) -> bool:
         os.replace(tmp, STORE_PATH)
         return True
     except Exception as e:
-        print(f"Error saving schedules: {e}")
+        print(f"ERROR: Failed to save schedules: {e}")
         return False
 
 def new_schedule_id() -> str:

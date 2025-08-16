@@ -708,7 +708,15 @@ def render_improved_schedule_manager():
         chains = st.multiselect("Chains", ["ethereum","tron","bitcoin","binance_smart_chain"], default=["ethereum"],
             format_func=lambda x: {"ethereum": "ETH", "tron": "TRX", "bitcoin": "BTC", "binance_smart_chain": "BSC"}.get(x, x))
         weekdays_only = st.toggle("Weekdays Only", value=True)
+        
+        # Debug validation
         can_create = bool(name and chains)
+        if not can_create:
+            if not name:
+                st.warning("⚠️ Please enter a schedule name")
+            if not chains:
+                st.warning("⚠️ Please select at least one blockchain")
+        
         if st.button("🚀 Save", use_container_width=True, type="primary", disabled=not can_create):
             # Create schedule with simplified logic
             schedule_data = {
@@ -728,7 +736,10 @@ def render_improved_schedule_manager():
                 "frequency_preset": freq
             }
             
-            if save_schedules([*load_schedules(), schedule_data]):
+            existing_schedules = load_schedules()
+            all_schedules = [*existing_schedules, schedule_data]
+            
+            if save_schedules(all_schedules):
                 st.success(f"✅ Schedule '{name}' created successfully!")
                 # Clear form and hide
                 st.session_state["show_create_form"] = False

@@ -82,7 +82,10 @@ class DesktopNotificationService:
             toaster = ToastNotifier()
             toaster.show_toast(title, message, duration=10, threaded=True)
         except ImportError:
-            # Fallback to simple print
+            # Fallback to simple print (win10toast not available on non-Windows platforms)
+            print(f"🔔 {title}: {message}")
+        except Exception as e:
+            # Fallback for any other errors
             print(f"🔔 {title}: {message}")
     
     def _show_macos_notification(self, title: str, message: str):

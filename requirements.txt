@@ -11,7 +11,7 @@ websockets>=11.0.2
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 schedule>=1.2.0
-win10toast>=0.9
+win10toast>=0.9; sys_platform == "win32"
 pytz>=2023.3
 croniter>=1.4.1
 apscheduler>=3.10.4

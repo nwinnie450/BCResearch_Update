@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 from config import PAGE_CONFIG, APP_TITLE, APP_DESCRIPTION, VERSION, COLORS
 from utils.session_manager import init_session_state
 from components.sidebar import render_sidebar
-from components.header import render_header
+from components.header import render_header, render_banner
 from components.horizontal_tabs import render_horizontal_tabs
 from components.chat_interface import render_chat_interface
 from components.dashboard import render_dashboard
@@ -36,11 +36,8 @@ def main():
     # Initialize session state
     init_session_state()
     
-    # Render header
-    render_header()
-    
-    # Render horizontal navigation tabs
-    selected_page = render_horizontal_tabs()
+    # Render header with integrated navigation tabs
+    selected_page = render_banner()
     
     # Check if auto fetcher should be shown
     if hasattr(st.session_state, 'show_auto_fetcher') and st.session_state.show_auto_fetcher:

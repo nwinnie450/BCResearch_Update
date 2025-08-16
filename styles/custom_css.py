@@ -28,6 +28,18 @@ def load_custom_css():
       height: 0; 
       background: transparent; 
     }
+    
+    /* Eliminate gaps between elements */
+    .main .block-container {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    .element-container {
+      margin-bottom: 0 !important;
+    }
+    [data-testid="stMarkdownContainer"] {
+      margin-bottom: 0 !important;
+    }
 
     /* Compact vertical rhythm */
     div[data-testid="stVerticalBlock"] > div { 
@@ -91,7 +103,7 @@ def load_custom_css():
     
     /* HORIZONTAL NAVIGATION TABS */
     .nav-tabs {
-      margin: 12px 0;
+      margin: 8px 0 12px 0;
       padding: 0;
     }
     .nav-container {
@@ -100,6 +112,18 @@ def load_custom_css():
       padding: 8px;
       border: 1px solid rgba(98, 126, 234, 0.2);
     }
+    
+    /* Debug: highlight any containers that might be creating empty space */
+    [data-testid="stVerticalBlock"]:empty {
+      display: none !important;
+    }
+    [data-testid="column"]:empty {
+      display: none !important;
+    }
+    .element-container:empty {
+      display: none !important;
+    }
+    
     .nav-tabs .stButton > button {
       background: transparent !important;
       color: var(--eth-blue) !important;

@@ -692,195 +692,47 @@ def render_improved_schedule_manager():
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Compact two-column form grid
-    st.markdown('<div class="form-grid">', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        name = st.text_input("Name", placeholder="e.g., Daily ETH Check")
-    with col2:
-        chains = st.multiselect(
-            "Blockchains",
-            ["ethereum", "tron", "bitcoin", "binance_smart_chain"],
-            default=["ethereum"],
-            format_func=lambda x: {"ethereum": "ETH", "tron": "TRX", "bitcoin": "BTC", "binance_smart_chain": "BSC"}.get(x, x)
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown("**📊 Frequency**")
-    
-    frequency_options = [
-        "Once per day",
-        "Twice per day", 
-        "3 times per day",
-        "Once per week",
-        "Twice per week",
-        "3 times per week",
-        "Every hour",
-        "Every 2 hours",
-        "Every 30 minutes"
-    ]
-    
-    frequency = st.selectbox(
-        "How often should it check?",
-        frequency_options,
-        help="Choose how frequently you want to check for new proposals"
-    )
-    
-    # Compact time selection
-    st.markdown("**🕐 Time(s)**")
-    
-    times_list = []
-    
-    if frequency == "Once per day":
-        time1 = st.time_input("Pick time for daily check:", value=time(9, 0))
-        times_list = [time1.strftime("%H:%M")]
-        st.success(f"✅ Will check daily at {time1.strftime('%I:%M %p')}")
-        
-    elif frequency == "Twice per day":
-        col1, col2 = st.columns(2)
-        with col1:
-            time1 = st.time_input("First check:", value=time(9, 0))
-        with col2:
-            time2 = st.time_input("Second check:", value=time(17, 0))
-        times_list = [time1.strftime("%H:%M"), time2.strftime("%H:%M")]
-        st.success(f"✅ Will check at {time1.strftime('%I:%M %p')} and {time2.strftime('%I:%M %p')}")
-        
-    elif frequency == "3 times per day":
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            time1 = st.time_input("Morning:", value=time(9, 0))
-        with col2:
-            time2 = st.time_input("Afternoon:", value=time(13, 0))
-        with col3:
-            time3 = st.time_input("Evening:", value=time(17, 0))
-        times_list = [time1.strftime("%H:%M"), time2.strftime("%H:%M"), time3.strftime("%H:%M")]
-        st.success(f"✅ Will check at {time1.strftime('%I:%M %p')}, {time2.strftime('%I:%M %p')}, {time3.strftime('%I:%M %p')}")
-        
-    elif "per week" in frequency:
-        check_time = st.time_input("What time for weekly checks?", value=time(9, 0))
-        times_list = [check_time.strftime("%H:%M")]
-        st.info(f"⏰ Selected time: {check_time.strftime('%I:%M %p')} - now pick days below")
-        
-    elif "Every" in frequency:
-        # Handle interval-based frequencies
-        if "hour" in frequency:
-            if "2 hours" in frequency:
-                interval_mins = 120
-            else:
-                interval_mins = 60
-        elif "30 minutes" in frequency:
-            interval_mins = 30
-        else:
-            interval_mins = 60
-        
-        st.success(f"✅ Will check every {interval_mins} minutes continuously")
-        mode = "interval"
-    
-    # Step 3: Day selection (only for weekly frequencies)
-    if "per week" in frequency:
-        st.markdown("### Step 3: 📅 Select Days")
-        
-        day_options = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        
-        if frequency == "Once per week":
-            selected_day = st.selectbox("Pick one day:", day_options)
-            selected_days = [selected_day]
-            st.success(f"✅ Will check every {selected_day} at {check_time.strftime('%I:%M %p')}")
-            
-        elif frequency == "Twice per week":
-            selected_days = st.multiselect("Pick two days:", day_options, max_selections=2)
-            if len(selected_days) == 2:
-                st.success(f"✅ Will check every {' and '.join(selected_days)} at {check_time.strftime('%I:%M %p')}")
-            elif len(selected_days) < 2:
-                st.warning("Please select exactly 2 days")
-            
-        elif frequency == "3 times per week":
-            selected_days = st.multiselect("Pick three days:", day_options, max_selections=3)
-            if len(selected_days) == 3:
-                st.success(f"✅ Will check every {', '.join(selected_days)} at {check_time.strftime('%I:%M %p')}")
-            elif len(selected_days) < 3:
-                st.warning("Please select exactly 3 days")
-        
-        # Convert to cron expression for weekly schedules
-        if len(selected_days) == int(frequency.split()[0].replace("Once", "1").replace("Twice", "2")):
-            weekday_map = {"Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, 
-                          "Friday": 5, "Saturday": 6, "Sunday": 0}
-            weekday_nums = [str(weekday_map[day]) for day in selected_days]
-            mode = "cron"
-            cron_expr = f"{check_time.minute} {check_time.hour} * * {','.join(weekday_nums)}"
-        else:
-            mode = "specific_times"  # fallback
-            cron_expr = ""
-    else:
-        # Daily frequencies or intervals
-        if "Every" in frequency:
-            mode = "interval"
-            cron_expr = ""
-        else:
-            mode = "specific_times"
-            cron_expr = ""
-    
-    # Compact settings and inline save
-    st.markdown("**⚙️ Settings & Save**")
-    col1, col2, col3 = st.columns([1.5, 1.5, 1])
-    
-    with col1:
-        weekdays_only = st.checkbox("Weekdays only", value=True)
-        
-    with col2:
-        timezone = st.selectbox(
-            "Timezone",
-            ["Asia/Singapore", "UTC", "US/Eastern", "US/Pacific"],
-            format_func=lambda x: {"Asia/Singapore": "SGT", "UTC": "UTC", "US/Eastern": "EST", "US/Pacific": "PST"}.get(x, x)
-        )
-    
-    with col3:
+    # Enhanced two-column form layout with card styling
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    left, right = st.columns([0.5, 0.5])
+    with left:
+        name = st.text_input("Name", placeholder="e.g., Weekly Proposal Check")
+        freq = st.selectbox("Frequency", [
+            "Once per day", "Twice per day", "3 times per day",
+            "Once per week", "Twice per week", "3 times per week",
+            "Every hour", "Every 2 hours", "Every 30 minutes"
+        ])
+        times = st.multiselect("Time(s)", ["09:00","12:00","15:30","20:00"], default=["15:30"])
+    with right:
+        days = st.multiselect("Day", ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], default=["Sat"])
+        chains = st.multiselect("Chains", ["ethereum","tron","bitcoin","binance_smart_chain"], default=["ethereum"],
+            format_func=lambda x: {"ethereum": "ETH", "tron": "TRX", "bitcoin": "BTC", "binance_smart_chain": "BSC"}.get(x, x))
+        weekdays_only = st.toggle("Weekdays Only", value=True)
         can_create = bool(name and chains)
-        if "per week" in frequency:
-            required_days = int(frequency.split()[0].replace("Once", "1").replace("Twice", "2"))
-            can_create = can_create and len(selected_days) == required_days
-        
-        if st.button("🚀 Create", type="primary", disabled=not can_create, use_container_width=True):
-            
-            # Build schedule object
+        if st.button("🚀 Save", use_container_width=True, type="primary", disabled=not can_create):
+            # Create schedule with simplified logic
             schedule_data = {
                 "id": new_schedule_id(),
                 "name": name,
                 "chains": chains,
-                "mode": mode,
-                "interval_minutes": interval_mins if mode == "interval" else 60,
-                "times": times_list,
-                "cron": cron_expr,
+                "mode": "specific_times",
+                "interval_minutes": 60,
+                "times": times,
+                "cron": "",
                 "end_time": None,
                 "weekdays_only": weekdays_only,
                 "enabled": True,
-                "timezone": timezone,
+                "timezone": "Asia/Singapore",
                 "created_at": datetime.now().isoformat(),
                 "last_run": None,
-                "frequency_preset": frequency  # Store the original frequency selection
+                "frequency_preset": freq
             }
             
-            # Save schedule
-            current_schedules = load_schedules()
-            current_schedules.append(schedule_data)
-            save_schedules(current_schedules)
-            
-            st.success(f"✅ Created schedule: {name}")
-            st.balloons()
-            
-            # Hide the create form after successful creation
-            st.session_state["show_create_form"] = False
-            st.rerun()
-    
-    if not can_create:
-        if not name:
-            st.warning("⚠️ Please enter a schedule name")
-        elif not chains:
-            st.warning("⚠️ Please select at least one blockchain")
-        elif "per week" in frequency and len(selected_days) != int(frequency.split()[0].replace("Once", "1").replace("Twice", "2")):
-            st.warning(f"⚠️ Please select the correct number of days for '{frequency}'")
-
-if __name__ == "__main__":
-    # Standalone test
-    st.set_page_config(page_title="Improved Schedule Manager", layout="wide")
-    render_improved_schedule_manager()
+            if save_schedules([*load_schedules(), schedule_data]):
+                st.success(f"✅ Schedule '{name}' created successfully!")
+                # Clear form and hide
+                st.session_state["show_create_form"] = False
+                st.rerun()
+            else:
+                st.error("❌ Failed to save schedule")
+    st.markdown('</div>', unsafe_allow_html=True)

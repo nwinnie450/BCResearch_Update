@@ -14,7 +14,87 @@ def load_custom_css():
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
     
-    /* ====== GLOBAL WHITE-SPACE TIGHTENING ====== */
+    /* ====== OPTIMIZED COMPACT LAYOUT FIXES ====== */
+    /* Use full width & tight padding */
+    [data-testid="stAppViewContainer"] > .main {{
+      padding: 8px 12px 12px 12px !important;
+      max-width: 100% !important;
+    }}
+    
+    /* Remove Streamlit top spacer */
+    [data-testid="stHeader"] {{ 
+      height: 0; 
+      background: transparent; 
+    }}
+
+    /* Single-line headings with compact margins */
+    h1, h2, h3 {{ 
+      white-space: nowrap; 
+      margin: 6px 0 8px 0 !important; 
+    }}
+
+    /* Reduce vertical gaps between blocks */
+    div[data-testid="stVerticalBlock"] > div {{ 
+      margin-bottom: 6px !important; 
+    }}
+
+    /* Columns + tables tighter */
+    [data-testid="column"] {{ 
+      padding-left: 6px !important; 
+      padding-right: 6px !important; 
+    }}
+    [data-testid="stTable"] table {{ 
+      width: 100% !important; 
+    }}
+    [data-testid="stTable"] th, [data-testid="stTable"] td {{ 
+      padding: 6px 8px !important; 
+    }}
+
+    /* Sidebar: slimmer rail + no overflow on buttons */
+    [data-testid="stSidebar"] {{ 
+      min-width: 168px !important; 
+      max-width: 168px !important; 
+    }}
+    [data-testid="stSidebar"] > div:first-child {{ 
+      padding: 8px 6px !important; 
+    }}
+    [data-testid="stSidebar"] .stButton > button {{
+      width: 100% !important; 
+      font-size: 12px !important; 
+      line-height: 1.05 !important;
+      padding: 6px 8px !important; 
+      border-radius: 8px !important;
+      white-space: nowrap !important; 
+      overflow: hidden !important; 
+      text-overflow: ellipsis !important;
+    }}
+    [data-testid="stSidebar"] .stButton {{ 
+      margin-bottom: 6px !important; 
+    }}
+
+    /* Cards for sections (less "floating on white" look) */
+    .card {{ 
+      background: #fff; 
+      border: 1px solid #E5E7EB; 
+      border-radius: 14px; 
+      padding: 14px; 
+    }}
+    .muted {{ 
+      color: #64748B; 
+    }}
+
+    /* Table polish - zebra rows + sticky header */
+    [data-testid="stTable"] thead {{ 
+      position: sticky; 
+      top: 62px; 
+      z-index: 3; 
+      background: #fff; 
+    }}
+    [data-testid="stTable"] tbody tr:nth-child(even) {{ 
+      background: #FAFAFB; 
+    }}
+    
+    /* ====== LEGACY FALLBACK STYLES ====== */
     main [data-testid="block-container"], .block-container {{
       padding-top: 8px !important;
       padding-bottom: 10px !important;

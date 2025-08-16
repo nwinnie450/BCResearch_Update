@@ -17,19 +17,19 @@ def render_sidebar():
             label_visibility="collapsed"
         )
         
-        # Quick actions section - compact
+        # Quick Actions section - compact with shorter labels
         st.markdown("### ⚡ Quick Actions")
         
-        if st.button("📋 Latest TIPs", use_container_width=True):
+        if st.button("Latest TIPs", use_container_width=True):
             st.session_state.current_page = "📋 Proposals"
             selected = "📋 Proposals"
         
-        if st.button("🔗 Latest EIPs", use_container_width=True):
+        if st.button("Latest EIPs", use_container_width=True):
             st.session_state.selected_use_case = "eips"
             st.session_state.current_page = "💬 Chat"
             selected = "💬 Chat"
         
-        if st.button("⚡ L1 Performance", use_container_width=True):
+        if st.button("L1 Performance", use_container_width=True):
             st.session_state.selected_use_case = "l1_performance"
             st.session_state.current_page = "💬 Chat"
             selected = "💬 Chat"

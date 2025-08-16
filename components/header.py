@@ -10,8 +10,11 @@ def render_header():
     st.markdown(f"""
     <div class="banner">
       <div class="inner">
-        <h2>{APP_TITLE}</h2>
-        <div class="sub">{APP_DESCRIPTION} • v{VERSION}</div>
+        <h2>Top 5 L1 Blockchain Protocol Analysis</h2>
+        <div class="protocols">
+          <strong>Ethereum • Base • Tron • BSC • Bitcoin</strong>
+        </div>
+        <div class="sub">AI-powered research with live data & improvement proposals • v{VERSION}</div>
       </div>
     </div>
     """, unsafe_allow_html=True)

@@ -18,5 +18,25 @@
     "enabled": true,
     "created_date": "2025-08-18",
     "created_at": "2025-08-18T10:10:50.101982"
+  },
+  {
+    "id": "20250818_161831",
+    "name": "Daily at 04:30 PM",
+    "frequency": "Daily (Every day)",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "days_display": "Every day",
+    "time": "04:30 PM",
+    "time_24h": "16:30",
+    "enabled": true,
+    "created_date": "2025-08-18",
+    "created_at": "2025-08-18T16:18:31.520966"
   }
 ]

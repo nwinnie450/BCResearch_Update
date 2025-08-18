@@ -578,13 +578,35 @@ def render_email_configuration():
                     st.markdown("**Who should receive notifications?**")
                     
                     # Recipients with better explanation
+                    current_recipients = email_config.get('recipient_emails', [])
+                    
+                    st.markdown("**📧 Email Recipients**")
+                    st.info("💡 **Tip:** You can enter multiple emails in any of these formats:\n- One per line\n- Separated by semicolons (;)\n- Separated by commas (,)")
+                    
                     recipients_text = st.text_area(
                         "Send notifications to:",
-                        value="\\n".join(email_config.get('recipient_emails', [])),
-                        placeholder="developer1@company.com\\ndeveloper2@company.com\\nmanager@company.com",
-                        help="Enter email addresses, one per line",
-                        height=120
+                        value="\n".join(current_recipients) if current_recipients else "",
+                        placeholder="developer1@company.com\ndeveloper2@company.com\n\nOR:\n\ndeveloper1@company.com; developer2@company.com; manager@company.com",
+                        help="Enter email addresses using any format: new lines, semicolons (;), or commas (,)",
+                        height=140
                     )
+                    
+                    # Show preview of parsed emails
+                    if recipients_text.strip():
+                        import re
+                        preview_emails = []
+                        raw_emails = re.split(r'[\n;,]+', recipients_text)
+                        for email in raw_emails:
+                            email = email.strip()
+                            if email and '@' in email:
+                                preview_emails.append(email)
+                        
+                        if preview_emails:
+                            st.success(f"✅ **{len(preview_emails)} recipients detected:**")
+                            for i, email in enumerate(preview_emails, 1):
+                                st.write(f"  {i}. {email}")
+                        else:
+                            st.warning("⚠️ No valid email addresses detected")
                     
                     # Show helpful setup instructions
                     if email_provider == "Gmail":
@@ -616,8 +638,18 @@ def render_email_configuration():
                 with col1:
                     if st.button("💾 Save Email Config", type="primary", use_container_width=True):
                         try:
-                            # Parse recipient emails
-                            recipient_emails = [email.strip() for email in recipients_text.split('\\n') if email.strip()]
+                            # Parse recipient emails - support multiple formats
+                            recipient_emails = []
+                            
+                            # Split by multiple delimiters: newlines, semicolons, commas
+                            import re
+                            # Split by newlines, semicolons, or commas
+                            raw_emails = re.split(r'[\n;,]+', recipients_text)
+                            
+                            for email in raw_emails:
+                                email = email.strip()
+                                if email and '@' in email:  # Basic email validation
+                                    recipient_emails.append(email)
                             
                             # Validate required fields
                             if not all([smtp_server, sender_email, sender_password, recipient_emails]):

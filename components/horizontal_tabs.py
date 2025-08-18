@@ -6,12 +6,11 @@ import streamlit as st
 def render_horizontal_tabs():
     """Render horizontal navigation tabs under the banner"""
     
-    # Define navigation options
+    # Define navigation options - unified analytics replaces Compare, Analytics, Data
     nav_options = [
         ("🏠", "Home"),
         ("💬", "Chat"), 
-        ("📊", "Compare"),
-        ("📈", "Analytics"),
+        ("📊", "Analytics"),  # Unified: Analyze + Compare + Data Management
         ("📋", "Proposals"),
         ("📅", "Schedule")
     ]

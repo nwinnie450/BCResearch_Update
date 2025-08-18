@@ -18,8 +18,7 @@ from components.header import render_header, render_banner, render_banner_with_n
 from components.horizontal_tabs import render_horizontal_tabs
 from components.chat_interface import render_chat_interface
 from components.dashboard import render_dashboard
-from components.comparison import render_comparison
-from components.analytics import render_analytics
+# Unified analytics replaces separate comparison and analytics components
 from components.proposals import render_proposals_interface
 from styles.custom_css import load_custom_css
 
@@ -44,18 +43,14 @@ def main():
         render_home_page()
     elif selected_page == "💬 Chat":
         render_chat_interface()
-    elif selected_page == "📊 Compare":
-        render_comparison()
-    elif selected_page == "📈 Analytics": 
-        render_analytics()
+    elif selected_page == "📊 Analytics":
+        from components.unified_analytics import render_unified_analytics
+        render_unified_analytics()
     elif selected_page == "📋 Proposals":
         render_proposals_interface()
     elif selected_page == "📅 Schedule":
         from components.simple_schedule_manager import render_simple_schedule_manager
         render_simple_schedule_manager()
-    elif selected_page == "⚡ Data":
-        from components.realtime_data_interface import render_realtime_data_interface
-        render_realtime_data_interface()
     else:
         render_home_page()
 
@@ -63,7 +58,7 @@ def render_home_page():
     """Render the main home/dashboard page"""
     
     # Compact top toolbar with no overflow buttons  
-    st.markdown("### 🚀 Quick Start - Improvement Proposals & L1 Analysis")
+    st.markdown("### 🚀 Quick Start - Proposals, Analytics & Research")
     
     c1, c2, c3 = st.columns([0.33, 0.33, 0.34])
     
@@ -79,9 +74,8 @@ def render_home_page():
             st.rerun()
     
     with c3:
-        if st.button("⚡ L1 Performance", use_container_width=True):
-            st.session_state.selected_use_case = "l1_performance"
-            st.session_state.current_page = "💬 Chat"
+        if st.button("📊 Analytics Hub", use_container_width=True):
+            st.session_state.current_page = "📊 Analytics"
             st.rerun()
     
     # Main dashboard content

@@ -19,16 +19,14 @@ def render_banner_with_nav():
     </div>
     """, unsafe_allow_html=True)
     
-    # Navigation buttons immediately after banner with no container gap
-    nav_cols = st.columns(7)
+    # Navigation buttons immediately after banner with no container gap - unified analytics
+    nav_cols = st.columns(5)
     nav_options = [
         ("🏠", "Home"),
         ("💬", "Chat"), 
-        ("📊", "Compare"),
-        ("📈", "Analytics"),
+        ("📊", "Analytics"),  # Unified: Analyze + Compare + Data Management
         ("📋", "Proposals"),
-        ("📅", "Schedule"),
-        ("⚡", "Data")
+        ("📅", "Schedule")
     ]
     
     selected_page = None

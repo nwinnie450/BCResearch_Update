@@ -20,14 +20,15 @@ def render_banner_with_nav():
     """, unsafe_allow_html=True)
     
     # Navigation buttons immediately after banner with no container gap
-    nav_cols = st.columns(6)
+    nav_cols = st.columns(7)
     nav_options = [
         ("🏠", "Home"),
         ("💬", "Chat"), 
         ("📊", "Compare"),
         ("📈", "Analytics"),
         ("📋", "Proposals"),
-        ("📅", "Schedule")
+        ("📅", "Schedule"),
+        ("⚡", "Data")
     ]
     
     selected_page = None

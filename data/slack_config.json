@@ -1,0 +1,6 @@
+{
+  "enabled": false,
+  "webhook_url": "https://hooks.slack.com/test",
+  "channel": "#test",
+  "username": "Test Bot"
+}

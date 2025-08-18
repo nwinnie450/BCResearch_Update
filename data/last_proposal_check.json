@@ -1,4 +1,22 @@
 {
-  "timestamp": "2025-08-16T23:08:27.873766",
+  "last_updated": "2025-08-17T10:30:00",
   "proposals": {
-    "ethereum": 
+    "eips": [
+      "EIP-7995",
+      "EIP-7996",
+      "EIP-7997"
+    ],
+    "tips": [
+      "TIP-540",
+      "TIP-541"
+    ],
+    "bips": [
+      "BIP-341",
+      "BIP-342"
+    ],
+    "beps": [
+      "BEP-20",
+      "BEP-95"
+    ]
+  }
+}

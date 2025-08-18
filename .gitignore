@@ -1,77 +1,63 @@
-# Python cache files
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-
-# Virtual environment
-venv/
+*.class
+*.so
+.Python
 env/
+venv/
+venv_new/
+ENV/
+env.bak/
+venv.bak/
 
-# IDE files
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.streamlit/secrets.toml
+
+# IDE and Editor files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# OS files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
 nul
 
-# Environment variables
-.env
-
-# Test files
-test_*.py
-verify_*.py
-debug_*.py
-demo_*.py
-monitor_*.py
-check_*.py
-show_*.py
-quick_*.py
-interval_*.py
-live_*.py
-manual_*.py
-migrate_*.py
-
-# Documentation files (keep only main docs)
-*_README.md
-*_GUIDE.md
-*_DEMO.md
-*_SUMMARY.md
-*_FIX*.md
-
 # Logs
-*.log
 logs/
+*.log
 
-# Data files
+# Database files
+*.db
+*.sqlite3
+
+# Temporary files and caches
+temp/
+tmp/
+.cache/
+.pytest_cache/
+
+# Virtual environments
+bin/
+include/
+lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# Application specific
 data/jobs.db
 data/schedules.json
-
-# Config files
+data/email_config.json
 config/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/

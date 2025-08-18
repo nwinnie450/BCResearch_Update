@@ -13,12 +13,12 @@ import time
 from datetime import datetime, timedelta
 from config import BLOCKCHAIN_PROTOCOLS
 
-# Try to import realtime service, fallback to None if not available
+# Use comprehensive realtime data service
 try:
-    from services.realtime_analytics_service import realtime_service
+    from services.comprehensive_realtime_data_service import comprehensive_realtime_service
     REALTIME_AVAILABLE = True
 except ImportError:
-    realtime_service = None
+    comprehensive_realtime_service = None
     REALTIME_AVAILABLE = False
 
 def render_analytics():

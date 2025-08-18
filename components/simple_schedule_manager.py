@@ -6,6 +6,7 @@ Same styling as other pages but simple functionality
 import streamlit as st
 import json
 import os
+import requests
 from datetime import datetime, time, timedelta
 from typing import Dict, List, Optional
 
@@ -29,6 +30,53 @@ def save_simple_schedules(schedules):
         with open(schedules_file, 'w') as f:
             json.dump(schedules, f, indent=2)
         return True
+    except:
+        return False
+
+def load_slack_config():
+    """Load Slack configuration"""
+    slack_file = "data/slack_config.json"
+    if os.path.exists(slack_file):
+        try:
+            with open(slack_file, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_slack_config(config):
+    """Save Slack configuration"""
+    os.makedirs("data", exist_ok=True)
+    slack_file = "data/slack_config.json"
+    try:
+        with open(slack_file, 'w') as f:
+            json.dump(config, f, indent=2)
+        return True
+    except:
+        return False
+
+def load_email_config():
+    """Load email configuration"""
+    email_file = "data/email_config.json"
+    if os.path.exists(email_file):
+        try:
+            with open(email_file, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def test_slack_webhook(webhook_url):
+    """Test Slack webhook with a simple message"""
+    try:
+        test_message = {
+            "text": "🧪 Test message from Blockchain Research Agent",
+            "username": "Blockchain Research Agent",
+            "icon_emoji": ":robot_face:"
+        }
+        
+        response = requests.post(webhook_url, json=test_message, timeout=10)
+        return response.status_code == 200
     except:
         return False
 
@@ -651,10 +699,181 @@ def render_email_configuration():
         if email_config.get('recipient_emails'):
             st.info(f"📬 {len(email_config['recipient_emails'])} email recipients configured")
         
+        # Slack Configuration Section
+        st.markdown("---")
+        render_slack_configuration()
+        
     except ImportError:
         st.error("❌ Email system not available")
     except Exception as e:
         st.error(f"❌ Error loading email configuration: {str(e)}")
+
+def render_slack_configuration():
+    """Render Slack notification configuration interface"""
+    
+    st.markdown("#### 📱 Slack Notifications")
+    
+    # Load current Slack configuration
+    slack_config = load_slack_config()
+    
+    # Slack configuration form
+    with st.expander("⚙️ Slack Settings (Optional)", expanded=not slack_config.get('enabled', False)):
+        
+        # Enable/disable Slack notifications
+        slack_enabled = st.checkbox(
+            "Send notifications to Slack",
+            value=slack_config.get('enabled', False),
+            help="Send rich formatted notifications to your Slack channel"
+        )
+        
+        if slack_enabled:
+            st.success("💡 **Slack notifications are great for team collaboration!** Get rich formatted messages with proposal details and links.")
+            
+            with st.expander("📱 Slack Webhook Setup", expanded=not slack_config.get('webhook_url')):
+                st.markdown("**How to get your Slack Webhook URL:**")
+                
+                st.markdown("""
+                1. 🌐 Go to [Slack App Creation](https://api.slack.com/messaging/webhooks)
+                2. 📝 Click **"Create a Slack app"** → **"From scratch"**
+                3. 🏷️ App name: `Blockchain Research Agent`
+                4. 🏢 Choose your workspace
+                5. 🔧 Go to **"Incoming Webhooks"** → **Enable webhooks**
+                6. ➕ Click **"Add New Webhook to Workspace"**
+                7. 📺 Choose channel (e.g., `#blockchain-alerts`)
+                8. 📋 Copy the webhook URL (starts with `https://hooks.slack.com/...`)
+                """)
+                
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    # Webhook URL input
+                    webhook_url = st.text_input(
+                        "Slack Webhook URL:",
+                        value=slack_config.get('webhook_url', ''),
+                        placeholder="https://hooks.slack.com/services/...",
+                        help="Paste the webhook URL from your Slack app"
+                    )
+                    
+                    # Channel name
+                    channel_name = st.text_input(
+                        "Channel name:",
+                        value=slack_config.get('channel', ''),
+                        placeholder="#blockchain-alerts",
+                        help="The channel where notifications will be sent"
+                    )
+                    
+                    # Bot customization
+                    username = st.text_input(
+                        "Bot username:",
+                        value=slack_config.get('username', 'Blockchain Research Agent'),
+                        help="Name that will appear as the sender"
+                    )
+                    
+                    # Emoji selection
+                    emoji_options = [":robot_face:", ":chart_with_upwards_trend:", ":bell:", ":warning:", ":information_source:", ":gear:"]
+                    current_emoji = slack_config.get('icon_emoji', ':robot_face:')
+                    if current_emoji not in emoji_options:
+                        emoji_options.append(current_emoji)
+                    
+                    icon_emoji = st.selectbox(
+                        "Bot icon:",
+                        options=emoji_options,
+                        index=emoji_options.index(current_emoji) if current_emoji in emoji_options else 0,
+                        help="Emoji that will appear as the bot's avatar"
+                    )
+                
+                with col2:
+                    st.markdown("**Preview:**")
+                    if username and icon_emoji:
+                        st.markdown(f"**{icon_emoji} {username}**")
+                        st.markdown("🚨 **New Blockchain Proposals Detected!**")
+                        st.markdown("📊 Summary: 2 EIPs, 1 TIPs (Total: 3)")
+                        st.markdown("⚡ **EIP-7998**: Turn randao_reveal into a VRF")
+                        st.markdown("🚀 **TIP-542**: Energy Efficiency Improvement")
+                
+                # Save and test buttons
+                col1, col2, col3 = st.columns([1, 1, 1])
+                
+                with col1:
+                    if st.button("💾 Save Slack Config", type="primary", use_container_width=True):
+                        try:
+                            # Validate webhook URL
+                            if not webhook_url.startswith('https://hooks.slack.com/'):
+                                st.error("❌ Invalid webhook URL. Must start with 'https://hooks.slack.com/'")
+                            elif not channel_name:
+                                st.error("❌ Please enter a channel name")
+                            else:
+                                # Save configuration
+                                new_config = {
+                                    'enabled': slack_enabled,
+                                    'webhook_url': webhook_url,
+                                    'channel': channel_name,
+                                    'username': username,
+                                    'icon_emoji': icon_emoji,
+                                    'setup_date': datetime.now().isoformat()
+                                }
+                                
+                                if save_slack_config(new_config):
+                                    st.success("✅ Slack configuration saved!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to save configuration")
+                                    
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+                
+                with col2:
+                    if webhook_url and st.button("📱 Test Slack", help="Send test message", use_container_width=True):
+                        try:
+                            with st.spinner("Sending test message..."):
+                                success = test_slack_webhook(webhook_url)
+                                if success:
+                                    st.success("✅ Test message sent! Check your Slack channel.")
+                                else:
+                                    st.error("❌ Test failed. Check your webhook URL.")
+                                    
+                        except Exception as e:
+                            st.error(f"❌ Test failed: {str(e)}")
+                
+                with col3:
+                    if st.button("❌ Disable Slack", use_container_width=True):
+                        try:
+                            config = slack_config.copy()
+                            config['enabled'] = False
+                            if save_slack_config(config):
+                                st.success("✅ Slack notifications disabled")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+        
+        else:
+            st.info("📱 Slack notifications are disabled. Enable above to configure Slack settings.")
+    
+    # Show current Slack status
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if slack_config.get('enabled'):
+            st.success("✅ Slack Enabled")
+        else:
+            st.error("❌ Slack Disabled")
+    
+    with col2:
+        if slack_config.get('webhook_url'):
+            st.success("✅ Webhook Configured")
+        else:
+            st.warning("⚠️ Webhook Not Set")
+    
+    with col3:
+        if slack_config.get('channel'):
+            st.success(f"✅ Channel: {slack_config['channel']}")
+        else:
+            st.warning("⚠️ No Channel Set")
+    
+    # Show setup date
+    if slack_config.get('setup_date'):
+        setup_date = datetime.fromisoformat(slack_config['setup_date']).strftime('%Y-%m-%d %I:%M %p')
+        st.info(f"🕒 Slack configured on: {setup_date}")
 
 def render_create_schedule_form():
     """Render the step-by-step create schedule form"""

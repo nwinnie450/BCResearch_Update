@@ -1,18 +1,25 @@
+
+# Core Application Dependencies
 streamlit>=1.28.0
 requests>=2.31.0
 plotly>=5.17.0
-altair>=5.1.0
 pandas>=2.1.0
 numpy>=1.24.0
-python-dotenv>=1.0.0
-httpx>=0.25.0
-pydantic>=2.4.0
-websockets>=11.0.2
+
+# Data Processing & Web Scraping
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
+
+# Environment & Configuration
+python-dotenv>=1.0.0
+
+# Scheduling & Background Tasks
 schedule>=1.2.0
-win10toast>=0.9; sys_platform == "win32"
-pytz>=2023.3
 croniter>=1.4.1
 apscheduler>=3.10.4
-sqlalchemy>=1.4.0
+
+# Notifications (Platform Specific)
+win10toast>=0.9
+
+# Timezone Support
+pytz>=2023.3

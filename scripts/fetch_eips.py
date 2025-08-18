@@ -7,6 +7,48 @@ import time
 import requests
 from bs4 import BeautifulSoup
 import os
+import re
+from urllib.parse import urljoin
+
+def fetch_eip_creation_date(eip_url, eip_number):
+    """Fetch creation date from individual EIP page"""
+    try:
+        response = requests.get(eip_url, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        
+        # Look for creation date in the header metadata
+        header_table = soup.find("table")
+        if header_table:
+            for row in header_table.find_all("tr"):
+                cells = row.find_all(["th", "td"])
+                if len(cells) >= 2:
+                    header = cells[0].get_text(strip=True).lower()
+                    if "created" in header:
+                        date_text = cells[1].get_text(strip=True)
+                        # Extract date in YYYY-MM-DD format
+                        date_match = re.search(r'(\d{4}-\d{2}-\d{2})', date_text)
+                        if date_match:
+                            return date_match.group(1)
+        
+        # Alternative: look for date patterns in the content
+        content = soup.get_text()
+        date_patterns = [
+            r'created:\s*(\d{4}-\d{2}-\d{2})',
+            r'Created:\s*(\d{4}-\d{2}-\d{2})',
+            r'created\s*(\d{4}-\d{2}-\d{2})',
+        ]
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                return match.group(1)
+        
+        return ""
+        
+    except Exception as e:
+        print(f"    Error fetching creation date for EIP-{eip_number}: {e}")
+        return ""
 
 def fetch_eips():
     """Scrape EIPs from the official EIPs website"""
@@ -89,7 +131,7 @@ def fetch_eips():
                                 "type": "Standards Track",  # Default type
                                 "category": "",  # Will be determined later if needed
                                 "status": default_status,
-                                "created": "",  # Would need individual page scraping
+                                "created": "",  # Will be filled later
                                 "url": link,
                                 "file_url": link,
                                 "protocol": "ethereum",
@@ -112,6 +154,22 @@ def fetch_eips():
         
         # Sort by number (latest first)
         rows.sort(key=lambda x: x["number"], reverse=True)
+        
+        # Fetch creation dates for recent EIPs (latest 100) to improve sorting
+        print(f"\nFetching creation dates for recent EIPs...")
+        recent_eips = rows[:100]  # Top 100 latest EIPs
+        
+        for i, eip in enumerate(recent_eips):
+            if i % 10 == 0:
+                print(f"  Fetching creation dates: {i+1}/{len(recent_eips)}")
+            
+            creation_date = fetch_eip_creation_date(eip["url"], eip["number"])
+            eip["created"] = creation_date
+            
+            # Small delay to be respectful to the server
+            time.sleep(0.1)
+        
+        print(f"Fetched creation dates for {len(recent_eips)} recent EIPs")
         
         return rows
         

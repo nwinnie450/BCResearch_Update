@@ -29,6 +29,13 @@ except ImportError as e:
     EMAIL_AVAILABLE = False
     print(f"Email import error: {e}")
 
+# Slack imports
+try:
+    import requests
+    SLACK_AVAILABLE = True
+except ImportError:
+    SLACK_AVAILABLE = False
+
 class ScheduleExecutor:
     """Execute saved schedules and trigger proposal fetching with notifications"""
     
@@ -37,6 +44,7 @@ class ScheduleExecutor:
         self.schedules_file = "data/simple_schedules.json"
         self.last_check_file = "data/last_proposal_check.json"
         self.email_config_file = "data/email_config.json"
+        self.slack_config_file = "data/slack_config.json"
         self.thread = None
         self.last_proposals = {}  # Store last known proposals for comparison
         
@@ -69,6 +77,27 @@ class ScheduleExecutor:
             return True
         except Exception as e:
             print(f"Error saving email config: {e}")
+            return False
+    
+    def load_slack_config(self):
+        """Load Slack configuration"""
+        if os.path.exists(self.slack_config_file):
+            try:
+                with open(self.slack_config_file, 'r') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def save_slack_config(self, config):
+        """Save Slack configuration"""
+        os.makedirs("data", exist_ok=True)
+        try:
+            with open(self.slack_config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"Error saving Slack config: {e}")
             return False
     
     def load_last_check(self):
@@ -138,11 +167,41 @@ class ScheduleExecutor:
         
         return current_proposals
     
-    def fetch_latest_proposals(self):
-        """Run the proposal fetching script"""
+    def fetch_latest_proposals(self, selected_protocols=None):
+        """Run the proposal fetching script for selected protocols or all"""
         try:
             print(f"Fetching latest proposals at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...")
             
+            if selected_protocols and len(selected_protocols) > 0:
+                # Use the real-time fetcher for selected protocols
+                try:
+                    from services.realtime_data_fetcher import realtime_data_fetcher
+                    
+                    print(f"Using real-time fetcher for protocols: {', '.join(selected_protocols)}")
+                    
+                    if len(selected_protocols) == 1:
+                        result = realtime_data_fetcher.fetch_protocol_data(selected_protocols[0])
+                        success = result.get('success', False)
+                        if success:
+                            print(f"SUCCESS: Fetched {result.get('count', 0)} proposals for {selected_protocols[0]}")
+                        else:
+                            print(f"ERROR: {result.get('error', 'Unknown error')}")
+                        return success
+                    else:
+                        result = realtime_data_fetcher.fetch_multiple_protocols(selected_protocols)
+                        success = result.get('success', False)
+                        if success:
+                            print(f"SUCCESS: Fetched {result.get('total_proposals_fetched', 0)} proposals from {result.get('successful_protocols', 0)} protocols")
+                        else:
+                            print(f"ERROR: {result.get('error', 'Unknown error')}")
+                        return success
+                        
+                except ImportError:
+                    print("Real-time fetcher not available, falling back to generate_all_data.py")
+                    # Fall back to original method
+                    pass
+            
+            # Original method - fetch all protocols
             result = subprocess.run([
                 sys.executable, 'scripts/generate_all_data.py'
             ], cwd='.', capture_output=True, text=True, timeout=300)

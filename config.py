@@ -7,8 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# AI Agent Configuration
-USE_CUSTOM_AGENT = os.getenv("USE_CUSTOM_AGENT", "true").lower() == "true"
+# API Configuration
 ANKR_API_KEY = os.getenv("ANKR_API_KEY", "")
 ANKR_API_URL = "https://rpc.ankr.com/multichain"
 

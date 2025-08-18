@@ -1,57 +1,77 @@
-# 🔗 Blockchain Research & Advisory AI Agent
+# 🔗 Blockchain Research & Advisory AI Agent v2.0
 
-An intelligent AI-powered application that helps developers, businesses, and researchers find the perfect blockchain protocol for their projects through conversational AI interface and comprehensive data analysis.
+An intelligent AI-powered application that provides **real-time blockchain data analysis** and advisory services through conversational AI interface. Get live market data, network metrics, and improvement proposals for the top 5 L1 protocols: **Ethereum**, **Bitcoin**, **Tron**, **BSC**, and **Base**.
 
-## ✨ Features
+## ✨ Enhanced Features v2.0
 
-### 🤖 AI-Powered Recommendations
-- Natural language query processing
-- Intelligent blockchain protocol recommendations
-- Context-aware conversational interface
-- Multi-criteria decision analysis
+### 🔄 **Real-Time Data Intelligence**
+- **Live Market Data**: Real-time prices, market cap, 24h volume from premium APIs
+- **Network Performance**: Current TPS, transaction fees, finality times
+- **Improvement Proposals**: Automated scraping of EIPs, TIPs, BIPs, BEPs
+- **Smart API Integration**: Seamless scaling from free APIs to premium providers
 
-### 📊 Real-Time Data Integration
-- Live blockchain metrics via Ankr Web3 API
-- Performance monitoring (TPS, fees, latency)
-- Security and ecosystem analysis
-- Market data and trends
+### 🤖 **Enhanced AI-Powered Analysis**
+- **Context-Aware Chat**: AI responses enhanced with live blockchain data
+- **Specialized Responses**: PM-focused, Developer-focused, Gaming/DeFi insights
+- **Real-Time Integration**: Live data automatically included in conversations
+- **Multi-Protocol Intelligence**: Cross-chain analysis and recommendations
 
-### 🔍 Advanced Analytics
-- Interactive comparison dashboards
-- Deep dive protocol analysis
-- Risk assessment and security scoring
-- Competitive positioning analysis
+### 📊 **Professional Data Management**
+- **Manual Data Refresh**: User-controlled data fetching with progress tracking
+- **Background Services**: Automatic data updates and caching
+- **API Enhancement**: Support for CoinGecko Pro, Etherscan Pro, BSCScan Pro, Moralis
+- **Cost Optimization**: Intelligent API usage with rate limiting and fallbacks
 
-### 💬 Conversational Interface
-- Natural language blockchain queries
-- ElizaOS backend integration
-- Context-preserving conversations
-- Smart parameter extraction
+### 💬 **Advanced Conversational Interface**
+- **Live Data Responses**: AI responses include current market and network data
+- **Professional Insights**: Business strategy, cost analysis, technical specifications
+- **Suggested Queries**: Smart question recommendations with live data integration
+- **Error Recovery**: Robust error handling with graceful fallbacks
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip package manager
-- ElizaOS backend (optional, fallback mode available)
+- **Python 3.9+** (Recommended: Python 3.11)
+- **pip** package manager
+- **Internet connection** for real-time data
 
-### Installation
+### Easy Installation (Recommended)
+
+#### **Windows Users**
+1. **Download/Clone the project**
+2. **Double-click** `setup.bat` to automatically set up everything
+3. **Double-click** `run_app.bat` to start the application
+4. **Open** http://localhost:8501 in your browser
+
+#### **Linux/Mac Users**
+1. **Download/Clone the project**
+2. **Run** `chmod +x setup.sh && ./setup.sh` to set up everything
+3. **Run** `./run_app.sh` to start the application
+4. **Open** http://localhost:8501 in your browser
+
+### Manual Installation
 
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd BlockChainResearch
+cd BlockChainResearch-Update
 ```
 
-2. **Install dependencies**
+2. **Create virtual environment**
 ```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux/Mac  
+source venv/bin/activate
+```
+
+3. **Install dependencies**
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-3. **Set up environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your API keys and configuration
 ```
 
 4. **Run the application**

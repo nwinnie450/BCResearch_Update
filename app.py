@@ -53,6 +53,9 @@ def main():
     elif selected_page == "📅 Schedule":
         from components.simple_schedule_manager import render_simple_schedule_manager
         render_simple_schedule_manager()
+    elif selected_page == "⚡ Data":
+        from components.realtime_data_interface import render_realtime_data_interface
+        render_realtime_data_interface()
     else:
         render_home_page()
 

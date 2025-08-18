@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import re
 from typing import List, Dict
-from services.ai_service import AIService
+from services.enhanced_ai_service import enhanced_ai_service
 from utils.session_manager import update_search_filter
 
 def render_chat_interface():
@@ -14,8 +14,8 @@ def render_chat_interface():
     
     st.markdown("### 💬 Ask Your Blockchain AI Advisor")
     
-    # Initialize services
-    ai_service = AIService()
+    # Initialize enhanced AI service with real-time data
+    ai_service = enhanced_ai_service
     
     # Chat container
     chat_container = st.container()
@@ -37,17 +37,20 @@ def display_chat_history():
         # Welcome message
         st.markdown("""
         <div class="chat-message bot-message">
-            <strong>🤖 AI Advisor:</strong> Hello! I'm your blockchain research specialist focusing on 
-            <strong>Improvement Proposals</strong> and <strong>L1 Protocol Analysis</strong>.
+            <strong>🤖 Enhanced AI Advisor:</strong> Hello! I'm your blockchain research specialist with 
+            <strong>Real-Time Data Integration</strong> covering all aspects of L1 protocols.
             <br><br>
-            I can help you with:
+            I now provide live data analysis including:
             <ul>
-                <li><strong>Proposals:</strong> "Show me latest TIPs in draft", "EIPs in production"</li>
-                <li><strong>L1 Performance:</strong> "Compare TPS across L1 protocols"</li>
-                <li><strong>Protocol Analysis:</strong> "Ethereum vs Tron transaction costs"</li>
-                <li><strong>Technical Research:</strong> "Bitcoin vs BSC consensus mechanisms"</li>
+                <li><strong>📊 Live Market Data:</strong> "Current prices", "Market analysis", "24h changes"</li>
+                <li><strong>⚡ Network Performance:</strong> "TPS comparison", "Transaction fees", "Network speed"</li>
+                <li><strong>📋 Improvement Proposals:</strong> "Latest EIPs", "Proposal counts", "Development activity"</li>
+                <li><strong>🏦 DeFi Ecosystem:</strong> "TVL analysis", "Protocol comparison", "DeFi trends"</li>
+                <li><strong>👨‍💻 Development Stats:</strong> "GitHub activity", "Code commits", "Repository insights"</li>
+                <li><strong>🎮 Gaming & Use Cases:</strong> "Best chains for gaming", "Use case optimization"</li>
             </ul>
-            What would you like to research today?
+            All responses now include <strong>real-time data</strong> that's automatically refreshed!<br>
+            What would you like to analyze with live blockchain data?
         </div>
         """, unsafe_allow_html=True)
     
@@ -122,7 +125,7 @@ def render_fee_comparison_tables(content: str):
 Would you like a detailed breakdown for any specific protocol or use case?
     """)
 
-def render_chat_input(ai_service: AIService):
+def render_chat_input(ai_service):
     """Render chat input and handle user messages"""
     
     # Pre-fill with use case if selected
@@ -168,51 +171,93 @@ def render_chat_input(ai_service: AIService):
         else:
             st.warning("Please enter a question or message.")
 
-def process_user_message(user_input: str, ai_service: AIService):
-    """Process user message and generate AI response"""
+def process_user_message(user_input: str, ai_service):
+    """Process user message and generate AI response with enhanced validation and error handling"""
+    
+    # Input validation
+    if not user_input or not isinstance(user_input, str):
+        st.warning("Please enter a valid question.")
+        return
+        
+    # Clean and validate input
+    cleaned_input = user_input.strip()
+    if not cleaned_input:
+        st.warning("Please enter a question or message.")
+        return
+        
+    # Check for extremely long inputs
+    if len(cleaned_input) > 1000:
+        st.warning("Your message is too long. Please keep it under 1000 characters.")
+        return
+        
+    # Check for potentially harmful content (basic validation)
+    suspicious_patterns = ['<script', 'javascript:', 'eval(', 'exec(', 'import os', 'import sys']
+    if any(pattern in cleaned_input.lower() for pattern in suspicious_patterns):
+        st.error("Invalid input detected. Please ask a legitimate question about blockchain technology.")
+        return
     
     # Add user message to history
     st.session_state.chat_messages.append({
         "role": "user",
-        "content": user_input
+        "content": cleaned_input
     })
     
     # Show typing indicator
     with st.spinner("🤖 AI is thinking..."):
         try:
-            # Get AI response
-            ai_response = ai_service.get_chat_response(user_input, st.session_state.chat_messages)
+            # Get AI response with timeout handling
+            ai_response = ai_service.get_chat_response(cleaned_input, st.session_state.chat_messages)
             
-            # Ensure we have a valid response
-            if not ai_response or ai_response.strip() == "":
-                ai_response = "I'm sorry, I couldn't generate a response. Please try rephrasing your question."
-            
-            # Response is now working correctly with proper table formatting
-            
-            # Disable blockchain service recommendations to use only AI responses with proper table formatting
-            # search_params = ai_service.extract_search_parameters(user_input)
-            # recommendations = None
-            # if search_params:
-            #     recommendations = blockchain_service.get_recommendations(search_params)
-            #     if recommendations:
-            #         formatted_recommendations = format_recommendations(recommendations)
-            #         ai_response += f"\n\n{formatted_recommendations}"
+            # Validate AI response
+            if not ai_response:
+                ai_response = "I'm sorry, I couldn't generate a response at the moment. Please try again."
+            elif not isinstance(ai_response, str):
+                ai_response = "I encountered an issue processing your request. Please try rephrasing your question."
+            elif ai_response.strip() == "":
+                ai_response = "I'm sorry, I couldn't generate a meaningful response. Please try rephrasing your question."
+            elif len(ai_response) > 10000:
+                # Truncate overly long responses
+                ai_response = ai_response[:9500] + "\n\n*Response truncated for better readability. Please ask for specific details if needed.*"
             
             # Add AI response to history
             st.session_state.chat_messages.append({
                 "role": "assistant", 
                 "content": ai_response
             })
-            
-            # Recommendations disabled - using AI responses only
-            # if recommendations:
-            #     st.session_state.current_recommendations = recommendations
                 
-        except Exception as e:
+        except ConnectionError as e:
+            error_msg = "I'm having trouble connecting to data sources. Please check your internet connection and try again."
             st.session_state.chat_messages.append({
                 "role": "assistant",
-                "content": f"I apologize, but I encountered an error: {str(e)}. Please try rephrasing your question."
+                "content": error_msg
             })
+            st.error("Connection error occurred. Please try again.")
+            
+        except TimeoutError as e:
+            error_msg = "The request took too long to process. Please try a simpler question or try again later."
+            st.session_state.chat_messages.append({
+                "role": "assistant",
+                "content": error_msg
+            })
+            st.error("Request timed out. Please try again.")
+            
+        except ValueError as e:
+            error_msg = "I encountered an issue understanding your request. Please rephrase your question more clearly."
+            st.session_state.chat_messages.append({
+                "role": "assistant",
+                "content": error_msg
+            })
+            st.warning("Please rephrase your question.")
+            
+        except Exception as e:
+            # Log the actual error for debugging while showing user-friendly message
+            print(f"Chat Interface Error: {str(e)}")
+            error_msg = "I apologize, but I encountered an unexpected error. Please try rephrasing your question or contact support if the issue persists."
+            st.session_state.chat_messages.append({
+                "role": "assistant",
+                "content": error_msg
+            })
+            st.error("An unexpected error occurred. Please try again.")
 
 def format_recommendations(recommendations: List[Dict]) -> str:
     """Format blockchain recommendations for display with comprehensive details"""
@@ -301,36 +346,70 @@ def format_finality_time(finality_value) -> str:
         return str(finality_value)
 
 def render_suggested_queries():
-    """Render suggested query buttons"""
+    """Render suggested query buttons with real-time data integration"""
     
-    st.markdown("### 💡 Suggested Questions")
+    st.markdown("### 💡 Suggested Questions (🔴 Live Data)")
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        if st.button("🎮 Best L1 for Gaming", use_container_width=True, key="gaming_query"):
-            query = "Which L1 protocol is best for gaming: Ethereum, Base, Tron, BSC, or Bitcoin?"
+        st.markdown("**📊 Market & Performance**")
+        
+        if st.button("📈 Live Market Analysis", use_container_width=True, key="market_query"):
+            query = "Show me current market data and prices for all protocols"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
-            process_user_message(query, AIService())
+            process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("🏢 Enterprise L1 Comparison", use_container_width=True, key="enterprise_query"):
-            query = "Compare Ethereum, Bitcoin, Base, BSC, and Tron for enterprise use"
+        if st.button("⚡ Network Performance", use_container_width=True, key="performance_query"):
+            query = "Compare current TPS and transaction fees across all networks"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
-            process_user_message(query, AIService())
+            process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col2:
-        if st.button("💰 Lowest L1 Fees", use_container_width=True, key="fees_query"):
-            query = "Find the lowest fee L1 protocol among Ethereum, Base, Tron, BSC, Bitcoin"
+        st.markdown("**🔗 Protocol Analysis**")
+        
+        if st.button("🏆 Complete Comparison", use_container_width=True, key="comparison_query"):
+            query = "Compare all protocols with live data - market, network, and proposals"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
-            process_user_message(query, AIService())
+            process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("💰 L1 Payment Solutions", use_container_width=True, key="payment_query"):
-            query = "Which L1 is best for payments: Tron, Base, BSC, Ethereum, or Bitcoin?"
+        if st.button("🎮 Gaming Blockchains", use_container_width=True, key="gaming_query"):
+            query = "Which blockchain is best for gaming based on current performance?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
-            process_user_message(query, AIService())
+            process_user_message(query, enhanced_ai_service)
+            st.rerun()
+    
+    with col3:
+        st.markdown("**💼 PM Questions**")
+        
+        if st.button("💰 Cost Analysis", use_container_width=True, key="pm_cost_query"):
+            query = "What's our cost per transaction and unit economics?"
+            st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
+            process_user_message(query, enhanced_ai_service)
+            st.rerun()
+        
+        if st.button("👥 User Metrics", use_container_width=True, key="pm_user_query"):
+            query = "Show me user activity and retention metrics"
+            st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
+            process_user_message(query, enhanced_ai_service)
+            st.rerun()
+    
+    with col4:
+        st.markdown("**⚙️ Dev Questions**")
+        
+        if st.button("🖥️ Infrastructure Status", use_container_width=True, key="dev_infra_query"):
+            query = "Check RPC latency and infrastructure status"
+            st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
+            process_user_message(query, enhanced_ai_service)
+            st.rerun()
+        
+        if st.button("⛓️ Chain Health", use_container_width=True, key="dev_chain_query"):
+            query = "Analyze chain health and reorg status"
+            st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
+            process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     # Clear chat button

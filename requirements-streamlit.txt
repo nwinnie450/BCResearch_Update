@@ -1,4 +1,4 @@
-
+# Streamlit Cloud Compatible Requirements
 # Core Application Dependencies
 streamlit>=1.28.0
 requests>=2.31.0
@@ -18,8 +18,8 @@ schedule>=1.2.0
 croniter>=1.4.1
 apscheduler>=3.10.4
 
-# Notifications (Platform Specific - Windows only)
-win10toast>=0.9; sys_platform == "win32"
-
 # Timezone Support
 pytz>=2023.3
+
+# Note: win10toast is excluded as it's Windows-specific and not compatible with Streamlit Cloud (Linux)
+# Desktop notifications will be disabled automatically on cloud platforms

@@ -34,6 +34,7 @@ class ProposalImpact:
     confidence: str  # High | Medium | Low
     references: Dict[str, str]
     last_checked_utc: str
+    created_date: str  # YYYY-MM-DD
     
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization"""
@@ -59,7 +60,8 @@ class ProposalImpact:
             'dependencies': self.dependencies,
             'confidence': self.confidence,
             'references': self.references,
-            'last_checked_utc': self.last_checked_utc
+            'last_checked_utc': self.last_checked_utc,
+            'created_date': self.created_date
         }
 
 class UnifiedImpactAnalyzer:
@@ -95,9 +97,10 @@ class UnifiedImpactAnalyzer:
         # Extract basic info
         proposal_id = proposal.get('id', 'Unknown')
         title = proposal.get('title', '')
-        url = proposal.get('link', '')
+        url = proposal.get('url', proposal.get('link', ''))
         status = proposal.get('status', 'TBD')
         description = proposal.get('description', '')
+        created_date = proposal.get('created', 'Unknown')
         
         # Determine chain from proposal ID
         chain = self._determine_chain(proposal_id)
@@ -139,7 +142,8 @@ class UnifiedImpactAnalyzer:
                 'discussion': impact_data.get('discussion_url', ''),
                 'client_releases': impact_data.get('client_releases', [])
             },
-            last_checked_utc=datetime.utcnow().isoformat()
+            last_checked_utc=datetime.utcnow().isoformat(),
+            created_date=created_date
         )
     
     def _determine_chain(self, proposal_id: str) -> str:

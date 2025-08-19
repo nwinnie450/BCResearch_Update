@@ -130,8 +130,9 @@ class UnifiedNotificationService:
         })
         
         # 2. Compact context line - merge all metadata into one clean line
-        breaking_text = "**Yes**" if impact.breaking_changes else "**No**"
-        context_line = f"*{impact.stage}* • **Impact: {impact.impact_level}** • {impact.type} • Breaking: {breaking_text} • Compat: **{impact.compatibility}** • Mig: **{impact.migration_complexity}**"
+        breaking_text = "*Yes*" if impact.breaking_changes else "*No*"
+        created_date = impact.created_date
+        context_line = f"*{impact.stage}* | *Impact: {impact.impact_level}* | {impact.type} | Created: *{created_date}* | Breaking: {breaking_text}"
         
         blocks.append({
             "type": "context",
@@ -199,11 +200,11 @@ class UnifiedNotificationService:
             "text": f"*Activation*\n{date_display}"
         })
         
-        # Effect on users - keep to 2 short lines
-        user_effect = impact.user_facing_effects[:60]
-        if len(impact.user_facing_effects) > 60:
+        # Effect on users - allow more space
+        user_effect = impact.user_facing_effects[:120]
+        if len(impact.user_facing_effects) > 120:
             user_effect += "..."
-        # Split long text into 2 lines if possible
+        # Split long text into lines if possible
         if ';' in user_effect:
             user_effect = user_effect.replace(';', '\n', 1)
         
@@ -212,19 +213,7 @@ class UnifiedNotificationService:
             "text": f"*Effect on users*\n{user_effect}"
         })
         
-        # Required actions - only if not already activated
-        if impact.required_actions and not (execution_date and '2024' in execution_date and 'Activated' in date_display):
-            actions_text = ""
-            for i, action in enumerate(impact.required_actions[:2], 1):
-                action_short = action[:35]
-                if len(action) > 35:
-                    action_short += "..."
-                actions_text += f"{i}. {action_short}\n"
-            
-            fields.append({
-                "type": "mrkdwn",
-                "text": f"*Do now*\n{actions_text.strip()}"
-            })
+        # Store required actions for separate section (don't add to fields yet)
         
         # Effort - shorter description
         effort_desc = {
@@ -240,15 +229,33 @@ class UnifiedNotificationService:
         })
         
         if fields:
+            # Keep essential fields (no limit cutting now)
             blocks.append({
                 "type": "section",
                 "fields": fields
             })
         
-        # 6. Divider
+        # 6. Required actions as separate section (if any)
+        if impact.required_actions and not (execution_date and '2024' in execution_date and 'Activated' in date_display):
+            actions_text = "*Required actions*\n"
+            for i, action in enumerate(impact.required_actions[:3], 1):
+                action_text = action[:100]  # More space in dedicated section
+                if len(action) > 100:
+                    action_text += "..."
+                actions_text += f"{i}. {action_text}\n"
+            
+            blocks.append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": actions_text.strip()
+                }
+            })
+        
+        # 7. Divider
         blocks.append({"type": "divider"})
         
-        # 7. Actions - buttons for links
+        # 8. Actions - buttons for links
         actions = []
         
         # Only include the essential "View Proposal" button
@@ -260,13 +267,20 @@ class UnifiedNotificationService:
                 "style": "primary"
             })
         
+        # Add Go-Ethereum link for developers (without style to avoid conflicts)
+        actions.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "🔧 Go-Ethereum"},
+            "url": "https://github.com/ethereum/go-ethereum"
+        })
+        
         if actions:
             blocks.append({
                 "type": "actions",
                 "elements": actions[:3]  # Max 3 buttons
             })
         
-        # 8. Footer - confidence, source, timestamp (compact)
+        # 9. Footer - confidence, source, timestamp (compact)
         source_domain = f"{impact.chain.lower()}.org" if impact.chain in ['Ethereum', 'Bitcoin'] else "github.com"
         footer_text = f"*Confidence: {impact.confidence}* • Source: {source_domain} • Checked {impact.last_checked_utc[:16]} UTC"
         blocks.append({
@@ -275,6 +289,51 @@ class UnifiedNotificationService:
                 {"type": "mrkdwn", "text": footer_text}
             ]
         })
+        
+        return {"blocks": blocks}
+    
+    def _create_simple_slack_message(self, impact: ProposalImpact) -> Dict:
+        """Create simple, reliable Slack Block Kit message"""
+        
+        blocks = []
+        
+        # Header - simple title
+        header_text = f"{impact.chain} {impact.proposal_id} - {impact.title[:60]}"
+        if len(impact.title) > 60:
+            header_text += "..."
+            
+        blocks.append({
+            "type": "header",
+            "text": {
+                "type": "plain_text", 
+                "text": header_text
+            }
+        })
+        
+        # Main content
+        main_text = f"*Impact: {impact.impact_level}* | *Stage: {impact.stage}*\n\n"
+        main_text += f"*TL;DR:* {impact.tl_dr[:120]}"
+        if len(impact.tl_dr) > 120:
+            main_text += "..."
+        
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": main_text
+            }
+        })
+        
+        # Action button
+        if impact.url:
+            blocks.append({
+                "type": "actions",
+                "elements": [{
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "View Proposal"},
+                    "url": impact.url
+                }]
+            })
         
         return {"blocks": blocks}
     
@@ -311,7 +370,7 @@ class UnifiedNotificationService:
           <tr><td style="padding:20px 24px 8px 24px;">
             <div style="font-size:20px;line-height:26px;font-weight:700;color:#111;">⚡ {impact.chain} {impact.proposal_id} — {impact.title}</div>
             <div style="margin-top:6px;font-size:12px;color:#5b6472;">
-              {impact.stage} • Impact: <strong>{impact.impact_level}</strong> • {impact.type} • Breaking: <strong>{'Yes' if impact.breaking_changes else 'No'}</strong> • Compat: <strong>{impact.compatibility}</strong> • Mig: <strong>{impact.migration_complexity}</strong>
+              {impact.stage} • Impact: <strong>{impact.impact_level}</strong> • {impact.type} • Created: <strong>{impact.created_date}</strong> • Breaking: <strong>{'Yes' if impact.breaking_changes else 'No'}</strong>
             </div>
           </td></tr>
 
@@ -362,7 +421,8 @@ class UnifiedNotificationService:
 
           <!-- Buttons -->
           <tr><td align="left" style="padding:8px 24px 20px 24px;">
-            <a href="{impact.url}" style="display:inline-block;background:#0ea5e9;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:14px;">📋 View Proposal</a>
+            <a href="{impact.url}" style="display:inline-block;background:#0ea5e9;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:14px;margin-right:8px;">📋 View Proposal</a>
+            <a href="https://github.com/ethereum/go-ethereum" style="display:inline-block;background:#6b7280;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:14px;">🔧 Go-Ethereum</a>
           </td></tr>
 
           <!-- Footer -->
@@ -407,6 +467,7 @@ class UnifiedNotificationService:
             f"",
             f"Confidence: {impact.confidence} | Source: {impact.chain.lower()}.org | Checked {impact.last_checked_utc[:16]} UTC",
             f"View Proposal: {impact.url}",
+            f"Go-Ethereum Reference: https://github.com/ethereum/go-ethereum",
         ])
         
         return "\n".join(lines)

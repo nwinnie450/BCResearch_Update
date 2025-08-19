@@ -1,7 +1,7 @@
 [
   {
-    "id": "20250818_101050",
-    "name": "Daily at 10:30 AM",
+    "id": "20250819_094119",
+    "name": "Daily at 10:00 AM",
     "frequency": "Daily (Every day)",
     "days": [
       "Monday",
@@ -13,30 +13,10 @@
       "Sunday"
     ],
     "days_display": "Every day",
-    "time": "10:30 AM",
-    "time_24h": "10:30",
+    "time": "10:00 AM",
+    "time_24h": "10:00",
     "enabled": true,
-    "created_date": "2025-08-18",
-    "created_at": "2025-08-18T10:10:50.101982"
-  },
-  {
-    "id": "20250818_161831",
-    "name": "Daily at 04:30 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "04:30 PM",
-    "time_24h": "16:30",
-    "enabled": true,
-    "created_date": "2025-08-18",
-    "created_at": "2025-08-18T16:18:31.520966"
+    "created_date": "2025-08-19",
+    "created_at": "2025-08-19T09:41:19.729066"
   }
 ]

@@ -40,7 +40,7 @@ def save_env_file(settings: dict):
     
     env_content.append("# OpenAI Configuration")
     env_content.append(f"OPENAI_API_KEY={settings.get('openai_api_key', '')}")
-    env_content.append(f"OPENAI_MODEL={settings.get('openai_model', 'gpt-3.5-turbo')}")
+    env_content.append(f"OPENAI_MODEL={settings.get('openai_model', 'gpt-4o')}")
     env_content.append(f"OPENAI_MAX_TOKENS={settings.get('openai_max_tokens', '1000')}")
     env_content.append(f"OPENAI_TEMPERATURE={settings.get('openai_temperature', '0.3')}")
     env_content.append("")
@@ -160,7 +160,7 @@ def render_settings_page():
                                     os.environ['OPENAI_API_KEY'] = new_api_key
                                     settings = {
                                         'openai_api_key': new_api_key,
-                                        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo'),
+                                        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
                                         'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
                                         'openai_temperature': os.getenv('OPENAI_TEMPERATURE', '0.3'),
                                         'sender_email': os.getenv('SENDER_EMAIL', ''),
@@ -199,11 +199,21 @@ def render_settings_page():
         
         col1, col2 = st.columns(2)
         with col1:
+            # Latest OpenAI models for blockchain analysis
+            model_options = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]
+            current_model = os.getenv('OPENAI_MODEL', 'gpt-4o')
+            
+            # Find index of current model, default to gpt-4o
+            try:
+                model_index = model_options.index(current_model)
+            except ValueError:
+                model_index = 0  # Default to gpt-4o
+                
             model = st.selectbox(
                 "Model",
-                ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
-                index=0 if os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo') == 'gpt-3.5-turbo' else 1,
-                help="GPT model to use for analysis"
+                model_options,
+                index=model_index,
+                help="Latest GPT models optimized for blockchain proposal analysis"
             )
             
         with col2:
@@ -276,7 +286,7 @@ def render_settings_page():
                 if new_email and new_password:
                     settings = {
                         'openai_api_key': os.getenv('OPENAI_API_KEY', ''),
-                        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo'),
+                        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
                         'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
                         'openai_temperature': os.getenv('OPENAI_TEMPERATURE', '0.3'),
                         'sender_email': new_email,
@@ -330,7 +340,7 @@ def render_settings_page():
                         if new_webhook.startswith('https://hooks.slack.com/'):
                             settings = {
                                 'openai_api_key': os.getenv('OPENAI_API_KEY', ''),
-                                'openai_model': os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo'),
+                                'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
                                 'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
                                 'openai_temperature': os.getenv('OPENAI_TEMPERATURE', '0.3'),
                                 'sender_email': os.getenv('SENDER_EMAIL', ''),

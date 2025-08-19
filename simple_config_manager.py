@@ -50,7 +50,7 @@ class SimpleConfigManager:
         
         # OpenAI Settings
         openai_key = os.getenv('OPENAI_API_KEY', '')
-        openai_model = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+        openai_model = os.getenv('OPENAI_MODEL', 'gpt-4o')
         max_tokens = os.getenv('OPENAI_MAX_TOKENS', '1000')
         temperature = os.getenv('OPENAI_TEMPERATURE', '0.3')
         

@@ -51,6 +51,9 @@ def main():
     elif selected_page == "📅 Schedule":
         from components.simple_schedule_manager import render_simple_schedule_manager
         render_simple_schedule_manager()
+    elif selected_page == "⚙️ Settings":
+        from components.settings_page import render_settings_page
+        render_settings_page()
     else:
         render_home_page()
 

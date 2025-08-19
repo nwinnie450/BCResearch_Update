@@ -104,6 +104,289 @@ def test_slack_webhook(webhook_url: str) -> bool:
     except Exception:
         return False
 
+def render_schedule_settings():
+    """Render schedule management settings"""
+    
+    st.markdown("Configure automatic proposal monitoring schedules")
+    
+    # Load existing schedules
+    schedules_file = "data/simple_schedules.json"
+    if os.path.exists(schedules_file):
+        try:
+            with open(schedules_file, 'r') as f:
+                schedules = json.load(f)
+        except:
+            schedules = []
+    else:
+        schedules = []
+    
+    # Schedule overview
+    st.subheader("📋 Current Schedules")
+    
+    if schedules:
+        for schedule in schedules:
+            if schedule.get('enabled', True):
+                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                
+                with col1:
+                    st.write(f"**{schedule.get('name', 'Unnamed')}**")
+                    
+                with col2:
+                    st.write(schedule.get('frequency', 'Unknown'))
+                    
+                with col3:
+                    st.write(schedule.get('time', 'Unknown'))
+                    
+                with col4:
+                    status = "🟢 Active" if schedule.get('enabled', True) else "🔴 Disabled"
+                    st.write(status)
+        
+        st.divider()
+    else:
+        st.info("No schedules configured. Use the Schedule page to create schedules.")
+    
+    # Schedule settings
+    st.subheader("⚙️ Schedule Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Execution Settings:**")
+        
+        default_timeout = st.number_input(
+            "Default Timeout (minutes)",
+            min_value=1,
+            max_value=60,
+            value=int(os.getenv('SCHEDULE_TIMEOUT', '10')),
+            help="Maximum time allowed for each schedule execution"
+        )
+        
+        retry_count = st.number_input(
+            "Retry Attempts",
+            min_value=0,
+            max_value=5,
+            value=int(os.getenv('SCHEDULE_RETRIES', '3')),
+            help="Number of retry attempts on failure"
+        )
+        
+    with col2:
+        st.markdown("**Notification Settings:**")
+        
+        notify_on_success = st.checkbox(
+            "Notify on Success",
+            value=os.getenv('NOTIFY_SUCCESS', 'true').lower() == 'true',
+            help="Send notifications when schedules complete successfully"
+        )
+        
+        notify_on_failure = st.checkbox(
+            "Notify on Failure", 
+            value=os.getenv('NOTIFY_FAILURE', 'true').lower() == 'true',
+            help="Send notifications when schedules fail"
+        )
+    
+    # Data retention settings
+    st.subheader("🗄️ History & Retention")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        history_days = st.number_input(
+            "Keep History (days)",
+            min_value=1,
+            max_value=365,
+            value=int(os.getenv('HISTORY_RETENTION_DAYS', '30')),
+            help="How long to keep execution history"
+        )
+        
+    with col2:
+        max_log_entries = st.number_input(
+            "Max Log Entries",
+            min_value=10,
+            max_value=1000,
+            value=int(os.getenv('MAX_LOG_ENTRIES', '100')),
+            help="Maximum number of log entries to keep"
+        )
+    
+    # Save schedule settings
+    if st.button("💾 Save Schedule Settings", use_container_width=True):
+        schedule_settings = {
+            'schedule_timeout': str(default_timeout),
+            'schedule_retries': str(retry_count),
+            'notify_success': str(notify_on_success).lower(),
+            'notify_failure': str(notify_on_failure).lower(),
+            'history_retention_days': str(history_days),
+            'max_log_entries': str(max_log_entries)
+        }
+        
+        if save_env_variables(schedule_settings):
+            st.success("✅ Schedule settings saved successfully!")
+            st.info("Restart the scheduler to apply new settings.")
+        else:
+            st.error("❌ Failed to save schedule settings")
+
+def render_data_settings():
+    """Render data source and proposal settings"""
+    
+    st.markdown("Configure blockchain data sources and proposal settings")
+    
+    # Data source settings
+    st.subheader("🔗 Data Sources")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Proposal Sources:**")
+        
+        # EIPs settings
+        eips_enabled = st.checkbox(
+            "Ethereum EIPs",
+            value=os.getenv('EIPS_ENABLED', 'true').lower() == 'true',
+            help="Monitor Ethereum Improvement Proposals"
+        )
+        
+        tips_enabled = st.checkbox(
+            "TRON TIPs",
+            value=os.getenv('TIPS_ENABLED', 'true').lower() == 'true', 
+            help="Monitor TRON Improvement Proposals"
+        )
+        
+        bips_enabled = st.checkbox(
+            "Bitcoin BIPs",
+            value=os.getenv('BIPS_ENABLED', 'true').lower() == 'true',
+            help="Monitor Bitcoin Improvement Proposals"  
+        )
+        
+        beps_enabled = st.checkbox(
+            "Binance BEPs",
+            value=os.getenv('BEPS_ENABLED', 'true').lower() == 'true',
+            help="Monitor Binance Evolution Proposals"
+        )
+        
+    with col2:
+        st.markdown("**Update Settings:**")
+        
+        update_interval = st.selectbox(
+            "Update Frequency",
+            ["Every 30 minutes", "Every hour", "Every 2 hours", "Every 4 hours", "Daily"],
+            index=2 if os.getenv('UPDATE_INTERVAL', '2h') == '2h' else 0,
+            help="How often to check for new proposals"
+        )
+        
+        batch_size = st.number_input(
+            "Batch Size",
+            min_value=10,
+            max_value=1000,
+            value=int(os.getenv('BATCH_SIZE', '100')),
+            help="Number of proposals to process per batch"
+        )
+        
+        rate_limit = st.number_input(
+            "Rate Limit (requests/min)",
+            min_value=1,
+            max_value=100,
+            value=int(os.getenv('RATE_LIMIT', '60')),
+            help="API request rate limit to avoid blocking"
+        )
+    
+    st.divider()
+    
+    # Data quality settings
+    st.subheader("🎯 Data Quality")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Filtering:**")
+        
+        min_proposal_length = st.number_input(
+            "Min Proposal Length",
+            min_value=10,
+            max_value=1000,
+            value=int(os.getenv('MIN_PROPOSAL_LENGTH', '50')),
+            help="Minimum character length for proposals"
+        )
+        
+        exclude_drafts = st.checkbox(
+            "Exclude Draft Proposals",
+            value=os.getenv('EXCLUDE_DRAFTS', 'false').lower() == 'true',
+            help="Skip proposals in draft status"
+        )
+        
+    with col2:
+        st.markdown("**Processing:**")
+        
+        enable_deduplication = st.checkbox(
+            "Enable Deduplication",
+            value=os.getenv('ENABLE_DEDUPLICATION', 'true').lower() == 'true',
+            help="Remove duplicate proposals automatically"
+        )
+        
+        validate_links = st.checkbox(
+            "Validate Links",
+            value=os.getenv('VALIDATE_LINKS', 'false').lower() == 'true',
+            help="Check if proposal links are accessible"
+        )
+    
+    # Cache settings
+    st.subheader("🗂️ Cache & Storage")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        cache_duration = st.selectbox(
+            "Cache Duration",
+            ["1 hour", "6 hours", "12 hours", "24 hours"],
+            index=1 if os.getenv('CACHE_DURATION', '6h') == '6h' else 0,
+            help="How long to cache fetched data"
+        )
+        
+    with col2:
+        backup_enabled = st.checkbox(
+            "Enable Backups",
+            value=os.getenv('BACKUP_ENABLED', 'true').lower() == 'true',
+            help="Create automatic backups of proposal data"
+        )
+    
+    # Save data settings
+    if st.button("💾 Save Data Settings", use_container_width=True):
+        # Convert interval to standardized format
+        interval_map = {
+            "Every 30 minutes": "30m",
+            "Every hour": "1h", 
+            "Every 2 hours": "2h",
+            "Every 4 hours": "4h",
+            "Daily": "24h"
+        }
+        
+        cache_map = {
+            "1 hour": "1h",
+            "6 hours": "6h",
+            "12 hours": "12h", 
+            "24 hours": "24h"
+        }
+        
+        data_settings = {
+            'eips_enabled': str(eips_enabled).lower(),
+            'tips_enabled': str(tips_enabled).lower(),
+            'bips_enabled': str(bips_enabled).lower(),
+            'beps_enabled': str(beps_enabled).lower(),
+            'update_interval': interval_map.get(update_interval, '2h'),
+            'batch_size': str(batch_size),
+            'rate_limit': str(rate_limit),
+            'min_proposal_length': str(min_proposal_length),
+            'exclude_drafts': str(exclude_drafts).lower(),
+            'enable_deduplication': str(enable_deduplication).lower(),
+            'validate_links': str(validate_links).lower(),
+            'cache_duration': cache_map.get(cache_duration, '6h'),
+            'backup_enabled': str(backup_enabled).lower()
+        }
+        
+        if save_env_variables(data_settings):
+            st.success("✅ Data settings saved successfully!")
+            st.info("Changes will take effect on next data fetch.")
+        else:
+            st.error("❌ Failed to save data settings")
+
 def render_settings_page():
     """Render the settings page"""
     
@@ -114,7 +397,7 @@ def render_settings_page():
     st.markdown("Configure your API keys and system settings securely")
     
     # Create tabs for different setting categories
-    tab1, tab2, tab3, tab4 = st.tabs(["🤖 OpenAI", "📧 Email", "💬 Slack", "🧪 Testing"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🤖 OpenAI", "📧 Email", "💬 Slack", "📅 Schedule", "📊 Data"])
     
     # OpenAI Settings Tab
     with tab1:
@@ -299,6 +582,60 @@ def render_settings_page():
                     st.rerun()
                 else:
                     st.error("❌ Please fill in both email and password")
+        
+        # Email test function
+        st.divider()
+        st.subheader("📧 Test Email Notification")
+        
+        if current_email and current_password:
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                test_recipient = st.text_input(
+                    "Test Email Address",
+                    value=current_email,
+                    help="Email address to send test notification"
+                )
+                
+            with col2:
+                if st.button("🧪 Send Test Email", type="secondary"):
+                    if test_recipient:
+                        # Test email functionality
+                        try:
+                            import smtplib
+                            from email.mime.text import MIMEText
+                            from email.mime.multipart import MIMEMultipart
+                            
+                            msg = MIMEMultipart()
+                            msg['From'] = current_email
+                            msg['To'] = test_recipient
+                            msg['Subject'] = "🧪 Blockchain Monitor - Test Email"
+                            
+                            body = """
+                            <h2>✅ Email Test Successful!</h2>
+                            <p>This is a test email from your Blockchain Proposal Monitoring System.</p>
+                            <p><strong>Configuration Status:</strong> ✅ Working correctly</p>
+                            <p><strong>Test Time:</strong> {}</p>
+                            <hr>
+                            <p><em>If you received this email, your notification system is properly configured!</em></p>
+                            """.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                            
+                            msg.attach(MIMEText(body, 'html'))
+                            
+                            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                                server.starttls()
+                                server.login(current_email, current_password)
+                                server.send_message(msg)
+                            
+                            st.success(f"✅ Test email sent successfully to {test_recipient}!")
+                            st.info("Check your inbox for the test message.")
+                            
+                        except Exception as e:
+                            st.error(f"❌ Email test failed: {str(e)}")
+                    else:
+                        st.warning("Please enter a test email address")
+        else:
+            st.warning("⚠️ Configure email settings first before testing")
     
     # Slack Settings Tab
     with tab3:
@@ -365,78 +702,79 @@ def render_settings_page():
                             st.error("❌ Slack webhook test failed")
                     else:
                         st.error("❌ Please enter a webhook URL")
+        
+        # Enhanced Slack test function
+        if current_webhook:
+            st.divider()
+            st.subheader("💬 Test Slack Notification")
+            
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                test_message = st.text_area(
+                    "Test Message",
+                    value="🧪 This is a test notification from your Blockchain Monitoring System!\n\n✅ Configuration is working correctly.",
+                    help="Custom message to send for testing"
+                )
+                
+            with col2:
+                if st.button("🧪 Send Test Message", type="secondary"):
+                    if test_message:
+                        # Enhanced test with custom message
+                        try:
+                            test_payload = {
+                                "text": f"🔔 *Blockchain Monitor Test*",
+                                "blocks": [
+                                    {
+                                        "type": "header",
+                                        "text": {
+                                            "type": "plain_text",
+                                            "text": "🧪 Test Notification"
+                                        }
+                                    },
+                                    {
+                                        "type": "section",
+                                        "text": {
+                                            "type": "mrkdwn",
+                                            "text": test_message
+                                        }
+                                    },
+                                    {
+                                        "type": "context",
+                                        "elements": [
+                                            {
+                                                "type": "mrkdwn",
+                                                "text": f"Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                            
+                            response = requests.post(current_webhook, json=test_payload, timeout=10)
+                            
+                            if response.status_code == 200:
+                                st.success("✅ Test message sent successfully!")
+                                st.info("Check your Slack channel for the test message.")
+                            else:
+                                st.error(f"❌ Test failed with status code: {response.status_code}")
+                                
+                        except Exception as e:
+                            st.error(f"❌ Test failed: {str(e)}")
+                    else:
+                        st.warning("Please enter a test message")
+        else:
+            st.warning("⚠️ Configure Slack webhook first before testing")
     
-    # Testing Tab
+    # Schedule Management Tab
     with tab4:
-        st.header("🧪 System Testing")
-        
-        st.markdown("Test all your configurations to ensure everything is working properly.")
-        
-        if st.button("🔬 Run All Tests", type="primary"):
-            
-            # Test OpenAI
-            st.subheader("🤖 OpenAI Test")
-            openai_key = os.getenv('OPENAI_API_KEY', '')
-            if openai_key:
-                if test_openai_connection(openai_key):
-                    st.success("✅ OpenAI API: Connected and ready")
-                else:
-                    st.error("❌ OpenAI API: Connection failed")
-            else:
-                st.warning("⚠️ OpenAI API: Not configured")
-            
-            # Test Email
-            st.subheader("📧 Email Test")
-            email = os.getenv('SENDER_EMAIL', '')
-            password = os.getenv('SENDER_PASSWORD', '')
-            if email and password:
-                st.success("✅ Email: Configuration complete")
-                st.info(f"Sender: {email}")
-            else:
-                st.warning("⚠️ Email: Missing configuration")
-            
-            # Test Slack
-            st.subheader("💬 Slack Test")
-            webhook = os.getenv('SLACK_WEBHOOK_URL', '')
-            if webhook:
-                if test_slack_webhook(webhook):
-                    st.success("✅ Slack: Webhook tested successfully!")
-                    st.info("Check your Slack channel for test message")
-                else:
-                    st.error("❌ Slack: Webhook test failed")
-            else:
-                st.warning("⚠️ Slack: Not configured")
-        
-        # Configuration Status
-        st.subheader("📊 Configuration Status")
-        
-        openai_status = "✅ Ready" if os.getenv('OPENAI_API_KEY') else "❌ Not Set"
-        email_status = "✅ Ready" if (os.getenv('SENDER_EMAIL') and os.getenv('SENDER_PASSWORD')) else "❌ Not Set"
-        slack_status = "✅ Ready" if os.getenv('SLACK_WEBHOOK_URL') else "❌ Not Set"
-        
-        status_data = {
-            "Component": ["OpenAI API", "Email", "Slack"],
-            "Status": [openai_status, email_status, slack_status]
-        }
-        
-        st.table(status_data)
-        
-        # Quick Actions
-        st.subheader("⚡ Quick Actions")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("🚀 Start Scheduler"):
-                st.info("Run: `python start_scheduler.py` in terminal")
-        
-        with col2:
-            if st.button("📊 View Logs"):
-                st.info("Check `logs/` directory for system logs")
-        
-        with col3:
-            if st.button("🔄 Restart System"):
-                st.info("Restart the Streamlit app to apply changes")
+        st.header("📅 Schedule Management")
+        render_schedule_settings()
+    
+    # Data Configuration Tab  
+    with tab5:
+        st.header("📊 Data Configuration")
+        render_data_settings()
 
 if __name__ == "__main__":
     render_settings_page()

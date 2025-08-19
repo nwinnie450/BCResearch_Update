@@ -1,6 +1,8 @@
 {
-  "enabled": false,
-  "webhook_url": "https://hooks.slack.com/test",
-  "channel": "#test",
-  "username": "Test Bot"
+  "enabled": true,
+  "webhook_url": "https://hooks.slack.com/services/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",
+  "channel": "#faws_testing",
+  "username": "BlockChain Research Agent",
+  "icon_emoji": ":robot_face:",
+  "setup_date": "2025-08-18T11:51:36.713038"
 }

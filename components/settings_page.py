@@ -9,11 +9,12 @@ from pathlib import Path
 import getpass
 
 def mask_api_key(api_key: str) -> str:
-    """Mask API key for secure display"""
+    """Mask API key for secure display - shows first 4 and last 4 digits"""
     if not api_key:
         return "Not Set"
     if len(api_key) <= 8:
         return "*" * len(api_key)
+    # Show first 4 and last 4 characters with stars in between
     return api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:]
 
 def load_env_variables():

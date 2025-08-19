@@ -34,11 +34,12 @@ class SimpleConfigManager:
                 print(f"Warning: Could not load .env file: {e}")
     
     def mask_sensitive_data(self, value: str, reveal_chars: int = 4) -> str:
-        """Mask sensitive data for display"""
+        """Mask sensitive data for display - shows first 4 and last 4 characters"""
         if not value:
             return "[Not Set]"
         if len(value) <= reveal_chars * 2:
             return "[SET] " + "*" * len(value)
+        # Show first 4 and last 4 characters with stars in between
         return "[SET] " + value[:reveal_chars] + "*" * (len(value) - reveal_chars * 2) + value[-reveal_chars:]
     
     def display_current_settings(self):

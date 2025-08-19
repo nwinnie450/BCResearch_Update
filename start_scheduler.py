@@ -71,16 +71,22 @@ class AutomaticScheduler:
     
     def _run_loop(self):
         """Main scheduler loop"""
+        import schedule
+        
         last_status_time = datetime.datetime.now()
         
         while self.running:
             try:
+                # CRITICAL: Run pending scheduled jobs
+                schedule.run_pending()
+                
                 time.sleep(10)  # Check every 10 seconds
                 current_time = datetime.datetime.now()
                 
                 # Print status every 5 minutes
                 if (current_time - last_status_time).total_seconds() >= 300:
-                    logger.info(f"🔄 Scheduler active - Next run: Daily at 10:00 AM")
+                    next_jobs = [str(job.next_run) for job in schedule.jobs[:2]]
+                    logger.info(f"🔄 Scheduler active - Next jobs: {', '.join(next_jobs) if next_jobs else 'None'}")
                     last_status_time = current_time
                 
             except KeyboardInterrupt:

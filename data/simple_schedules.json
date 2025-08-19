@@ -18,5 +18,45 @@
     "enabled": true,
     "created_date": "2025-08-19",
     "created_at": "2025-08-19T09:41:19.729066"
+  },
+  {
+    "id": "20250819_140355",
+    "name": "Daily at 02:30 PM",
+    "frequency": "Daily (Every day)",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "days_display": "Every day",
+    "time": "02:30 PM",
+    "time_24h": "14:30",
+    "enabled": true,
+    "created_date": "2025-08-19",
+    "created_at": "2025-08-19T14:03:55.066024"
+  },
+  {
+    "id": "tip_745_test_1755593901",
+    "name": "TIP-745 Test at 05:01 PM",
+    "frequency": "Daily (Every day)",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "days_display": "Every day",
+    "time": "05:01 PM",
+    "time_24h": "17:01",
+    "enabled": true,
+    "created_date": "2025-08-19",
+    "created_at": "2025-08-19T16:58:21.866700"
   }
 ]

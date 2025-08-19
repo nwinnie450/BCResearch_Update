@@ -201,7 +201,16 @@ class ScheduleExecutor:
                     # Fall back to original method
                     pass
             
-            # Original method - fetch all protocols
+            # Use the working TIPs fetcher specifically
+            # Since TIPs are the main focus of our testing
+            tip_result = subprocess.run([
+                sys.executable, 'fetch_all_tips.py'
+            ], cwd='.', capture_output=True, text=True, timeout=300)
+            
+            if tip_result.returncode != 0:
+                print(f"TIP fetch failed: {tip_result.stderr}")
+            
+            # Also run the main data generator for other protocols
             result = subprocess.run([
                 sys.executable, 'scripts/generate_all_data.py'
             ], cwd='.', capture_output=True, text=True, timeout=300)
@@ -247,8 +256,11 @@ class ScheduleExecutor:
             # Send notification if new proposals found
             if new_found:
                 self.send_notification(new_found, total_new)
+                # Store for history logging
+                self._last_new_proposals = new_found
                 print(f"TOTAL: {total_new} new proposals found")
             else:
+                self._last_new_proposals = {}
                 print("SUCCESS: No new proposals found")
             
             # Save current state for next comparison
@@ -261,28 +273,57 @@ class ScheduleExecutor:
             return False
     
     def send_notification(self, new_proposals: Dict, total_new: int):
-        """Send desktop and email notifications about new proposals"""
+        """Send unified notifications about new proposals using the modern notification system"""
         try:
-            # Create notification message
-            title = f"{total_new} New Blockchain Proposals!"
+            print(f"NOTIFICATION: Sending alerts for {total_new} new proposals")
             
-            message_parts = []
-            for protocol, numbers in new_proposals.items():
-                protocol_name = protocol.replace('_', ' ').title()
-                if protocol == 'binance_smart_chain':
-                    protocol_name = 'BSC'
-                message_parts.append(f"{protocol_name}: {len(numbers)} new")
+            # Convert the new_proposals format to the full proposal data needed by UnifiedNotificationService
+            from services.unified_notification_service import UnifiedNotificationService
             
-            message = " | ".join(message_parts)
+            # Get the full proposal data for each new proposal
+            protocols = {
+                'ethereum': 'data/eips.json',
+                'tron': 'data/tips.json', 
+                'bitcoin': 'data/bips.json',
+                'binance_smart_chain': 'data/beps.json'
+            }
             
-            # Send desktop notification
-            self.send_desktop_notification(title, message)
+            unified_proposals = {}
             
-            # Send email notification
-            self.send_email_notification(new_proposals, total_new)
+            for protocol, new_numbers in new_proposals.items():
+                if protocol in protocols:
+                    try:
+                        import json
+                        with open(protocols[protocol], 'r') as f:
+                            data = json.load(f)
+                        
+                        # Find the full proposal data for each new proposal number
+                        full_proposals = []
+                        for item in data.get('items', []):
+                            if item.get('number') in new_numbers:
+                                full_proposals.append(item)
+                        
+                        if full_proposals:
+                            unified_proposals[protocol] = full_proposals
+                            print(f"NOTIFICATION: Found {len(full_proposals)} full proposal records for {protocol}")
+                        
+                    except Exception as e:
+                        print(f"ERROR loading full proposal data for {protocol}: {e}")
+            
+            if unified_proposals:
+                # Use the modern unified notification service
+                notification_service = UnifiedNotificationService()
+                result = notification_service.send_unified_notifications(unified_proposals)
+                
+                if result.get('slack') and result.get('email'):
+                    print(f"SUCCESS: Unified notifications sent (Slack + Email)")
+                else:
+                    print(f"WARNING: Some notifications failed - Slack: {result.get('slack')}, Email: {result.get('email')}")
+            else:
+                print("ERROR: No full proposal data found for notifications")
                 
         except Exception as e:
-            print(f"ERROR sending notification: {e}")
+            print(f"ERROR sending unified notification: {e}")
     
     def send_desktop_notification(self, title: str, message: str):
         """Send desktop notification"""
@@ -495,13 +536,40 @@ class ScheduleExecutor:
     
     def run_scheduled_check(self, schedule_name: str):
         """Run a scheduled proposal check"""
+        start_time = datetime.now()
         print(f"SCHEDULED: Running scheduled check: {schedule_name}")
-        success = self.check_for_new_proposals()
         
-        if success:
-            print(f"SUCCESS: Scheduled check '{schedule_name}' completed successfully")
-        else:
-            print(f"ERROR: Scheduled check '{schedule_name}' failed")
+        success = False
+        new_proposals = {}
+        error_msg = None
+        
+        try:
+            success = self.check_for_new_proposals()
+            
+            if success:
+                print(f"SUCCESS: Scheduled check '{schedule_name}' completed successfully")
+                # Get the new proposals found during this check
+                new_proposals = getattr(self, '_last_new_proposals', {})
+            else:
+                print(f"ERROR: Scheduled check '{schedule_name}' failed")
+                error_msg = "Check for new proposals returned False"
+                
+        except Exception as e:
+            error_msg = str(e)
+            print(f"ERROR: Scheduled check '{schedule_name}' failed with exception: {error_msg}")
+        
+        # Log execution to history
+        try:
+            from components.schedule_history import log_schedule_execution
+            log_schedule_execution(
+                schedule_name=schedule_name,
+                success=success,
+                start_time=start_time,
+                new_proposals=new_proposals,
+                error=error_msg
+            )
+        except Exception as e:
+            print(f"WARNING: Failed to log execution history: {e}")
         
         return success
     

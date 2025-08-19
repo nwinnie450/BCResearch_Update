@@ -553,89 +553,271 @@ def render_settings_page():
         """)
         
         with st.form("email_form"):
-            new_email = st.text_input(
-                "Sender Email",
-                value=current_email,
-                placeholder="your-email@gmail.com"
+            # Email provider selection
+            email_provider = st.selectbox(
+                "Email Provider",
+                ["Gmail", "Outlook/Hotmail", "Yahoo", "Custom"],
+                index=0 if not current_email or 'gmail' in current_email else 
+                      1 if 'outlook' in current_email or 'hotmail' in current_email else
+                      2 if 'yahoo' in current_email else 3,
+                help="Select your email provider for automatic configuration"
             )
             
-            new_password = st.text_input(
-                "Gmail App Password",
-                type="password",
-                placeholder="Your Gmail app password"
+            # Show provider-specific instructions
+            if email_provider == "Gmail":
+                st.info("📝 Gmail: Use App Password (not regular password)")
+            elif email_provider == "Outlook/Hotmail":
+                st.info("📝 Outlook: Use App Password from Microsoft Account settings")
+            elif email_provider == "Yahoo":
+                st.info("📝 Yahoo: Use App Password from Yahoo Account settings")
+            else:
+                st.info("📝 Custom: Configure SMTP settings manually")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                new_email = st.text_input(
+                    "Sender Email",
+                    value=current_email,
+                    placeholder="your-email@domain.com"
+                )
+                
+            with col2:
+                new_password = st.text_input(
+                    "Email Password",
+                    type="password",
+                    placeholder="Your app password"
+                )
+            
+            # SMTP configuration (auto-filled for known providers)
+            if email_provider == "Custom":
+                st.subheader("🔧 SMTP Configuration")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    smtp_server = st.text_input(
+                        "SMTP Server",
+                        value=os.getenv('SMTP_SERVER', ''),
+                        placeholder="smtp.yourdomain.com"
+                    )
+                    
+                with col2:
+                    smtp_port = st.number_input(
+                        "SMTP Port",
+                        value=int(os.getenv('SMTP_PORT', '587')),
+                        min_value=1,
+                        max_value=65535
+                    )
+            else:
+                # Auto-configure SMTP based on provider
+                if email_provider == "Gmail":
+                    smtp_server = "smtp.gmail.com"
+                    smtp_port = 587
+                elif email_provider == "Outlook/Hotmail":
+                    smtp_server = "smtp-mail.outlook.com"
+                    smtp_port = 587
+                elif email_provider == "Yahoo":
+                    smtp_server = "smtp.mail.yahoo.com" 
+                    smtp_port = 587
+                
+                st.info(f"SMTP: {smtp_server}:{smtp_port} (auto-configured)")
+            
+            # Recipient emails
+            st.subheader("📬 Email Recipients")
+            
+            # Load current recipients
+            try:
+                with open("data/email_config.json", 'r') as f:
+                    email_config = json.load(f)
+                current_recipients = email_config.get('recipient_emails', [])
+            except:
+                current_recipients = []
+            
+            recipients_text = st.text_area(
+                "Recipient Email Addresses",
+                value="\n".join(current_recipients) if current_recipients else "",
+                height=100,
+                placeholder="Enter email addresses (one per line, or separated by commas/semicolons):\nexample1@domain.com\nexample2@domain.com",
+                help="Supports multiple formats: newlines, commas, or semicolons"
             )
+            
+            # Preview recipients if provided
+            if recipients_text.strip():
+                import re
+                
+                raw_emails = re.split(r'[\n;,]+', recipients_text)
+                preview_emails = []
+                for email in raw_emails:
+                    email = email.strip()
+                    if email and '@' in email:
+                        preview_emails.append(email)
+                
+                if preview_emails:
+                    st.success(f"✅ {len(preview_emails)} recipients detected")
+                    with st.expander("👀 Preview Recipients"):
+                        for email in preview_emails:
+                            st.write(f"📧 {email}")
             
             if st.form_submit_button("💾 Save Email Settings"):
                 if new_email and new_password:
-                    settings = {
-                        'openai_api_key': os.getenv('OPENAI_API_KEY', ''),
-                        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
-                        'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
-                        'openai_temperature': os.getenv('OPENAI_TEMPERATURE', '0.3'),
-                        'sender_email': new_email,
-                        'sender_password': new_password,
-                        'slack_webhook_url': os.getenv('SLACK_WEBHOOK_URL', ''),
-                        'slack_channel': os.getenv('SLACK_CHANNEL', '#faws_testing')
-                    }
-                    save_env_file(settings)
-                    st.success("✅ Email settings saved!")
-                    st.rerun()
+                    # Parse recipient emails
+                    recipient_emails = []
+                    if recipients_text.strip():
+                        import re
+                        raw_emails = re.split(r'[\n;,]+', recipients_text)
+                        for email in raw_emails:
+                            email = email.strip()
+                            if email and '@' in email:
+                                recipient_emails.append(email)
+                    
+                    if not recipient_emails:
+                        st.warning("⚠️ No valid recipient emails found. Please add at least one recipient.")
+                    else:
+                        # Save to environment variables
+                        env_settings = {
+                            'openai_api_key': os.getenv('OPENAI_API_KEY', ''),
+                            'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
+                            'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
+                            'openai_temperature': os.getenv('OPENAI_TEMPERATURE', '0.3'),
+                            'sender_email': new_email,
+                            'sender_password': new_password,
+                            'smtp_server': smtp_server,
+                            'smtp_port': str(smtp_port),
+                            'slack_webhook_url': os.getenv('SLACK_WEBHOOK_URL', ''),
+                            'slack_channel': os.getenv('SLACK_CHANNEL', '#faws_testing')
+                        }
+                        save_env_file(env_settings)
+                        
+                        # Save detailed email config to JSON file
+                        email_config = {
+                            'enabled': True,
+                            'smtp_server': smtp_server,
+                            'smtp_port': smtp_port,
+                            'sender_email': new_email,
+                            'sender_password': new_password,
+                            'recipient_emails': recipient_emails,
+                            'email_provider': email_provider
+                        }
+                        
+                        try:
+                            os.makedirs("data", exist_ok=True)
+                            with open("data/email_config.json", 'w') as f:
+                                json.dump(email_config, f, indent=2)
+                            
+                            st.success("✅ Email settings saved successfully!")
+                            st.info(f"📬 {len(recipient_emails)} recipients configured")
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"❌ Failed to save email config: {str(e)}")
                 else:
-                    st.error("❌ Please fill in both email and password")
+                    st.error("❌ Please fill in both sender email and password")
         
         # Email test function
         st.divider()
         st.subheader("📧 Test Email Notification")
         
-        if current_email and current_password:
+        # Load current email configuration
+        try:
+            with open("data/email_config.json", 'r') as f:
+                email_config = json.load(f)
+        except:
+            email_config = {}
+        
+        current_recipients = email_config.get('recipient_emails', [])
+        smtp_server = email_config.get('smtp_server', 'smtp.gmail.com')
+        smtp_port = email_config.get('smtp_port', 587)
+        
+        if current_email and current_password and current_recipients:
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                test_recipient = st.text_input(
-                    "Test Email Address",
-                    value=current_email,
-                    help="Email address to send test notification"
-                )
+                st.write(f"**Recipients:** {len(current_recipients)} configured")
+                if len(current_recipients) <= 3:
+                    for recipient in current_recipients:
+                        st.write(f"📧 {recipient}")
+                else:
+                    for recipient in current_recipients[:2]:
+                        st.write(f"📧 {recipient}")
+                    st.write(f"📧 ... and {len(current_recipients) - 2} more")
                 
             with col2:
                 if st.button("🧪 Send Test Email", type="secondary"):
-                    if test_recipient:
-                        # Test email functionality
-                        try:
-                            import smtplib
-                            from email.mime.text import MIMEText
-                            from email.mime.multipart import MIMEMultipart
+                    # Test email functionality to all recipients
+                    try:
+                        import smtplib
+                        from email.mime.text import MIMEText
+                        from email.mime.multipart import MIMEMultipart
+                        
+                        success_count = 0
+                        failed_recipients = []
+                        
+                        with smtplib.SMTP(smtp_server, smtp_port) as server:
+                            server.starttls()
+                            server.login(current_email, current_password)
                             
-                            msg = MIMEMultipart()
-                            msg['From'] = current_email
-                            msg['To'] = test_recipient
-                            msg['Subject'] = "🧪 Blockchain Monitor - Test Email"
+                            for recipient in current_recipients:
+                                try:
+                                    msg = MIMEMultipart()
+                                    msg['From'] = current_email
+                                    msg['To'] = recipient
+                                    msg['Subject'] = "🧪 Blockchain Monitor - Test Email"
+                                    
+                                    body = f"""
+                                    <h2>✅ Email Test Successful!</h2>
+                                    <p>This is a test email from your Blockchain Proposal Monitoring System.</p>
+                                    
+                                    <h3>📧 Configuration Details:</h3>
+                                    <ul>
+                                        <li><strong>Provider:</strong> {email_config.get('email_provider', 'Unknown')}</li>
+                                        <li><strong>SMTP Server:</strong> {smtp_server}:{smtp_port}</li>
+                                        <li><strong>Sender:</strong> {current_email}</li>
+                                        <li><strong>Recipient:</strong> {recipient}</li>
+                                        <li><strong>Test Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</li>
+                                    </ul>
+                                    
+                                    <div style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                        <h4 style="color: #2c3e50;">✅ Configuration Status: Working Correctly</h4>
+                                        <p>If you received this email, your blockchain proposal notification system is properly configured!</p>
+                                    </div>
+                                    
+                                    <hr>
+                                    <p style="color: #666; font-size: 12px;">
+                                        This is an automated test message from your Blockchain Research & Monitoring System.
+                                    </p>
+                                    """
+                                    
+                                    msg.attach(MIMEText(body, 'html'))
+                                    server.send_message(msg)
+                                    success_count += 1
+                                    
+                                except Exception as e:
+                                    failed_recipients.append(f"{recipient}: {str(e)}")
+                        
+                        # Show results
+                        if success_count == len(current_recipients):
+                            st.success(f"✅ Test emails sent successfully to all {success_count} recipients!")
+                            st.info("Check your inbox for the test messages.")
+                        elif success_count > 0:
+                            st.warning(f"⚠️ {success_count}/{len(current_recipients)} emails sent successfully")
+                            if failed_recipients:
+                                with st.expander("❌ Failed Recipients"):
+                                    for failure in failed_recipients:
+                                        st.write(failure)
+                        else:
+                            st.error("❌ All email tests failed")
+                            if failed_recipients:
+                                with st.expander("❌ Error Details"):
+                                    for failure in failed_recipients:
+                                        st.write(failure)
                             
-                            body = """
-                            <h2>✅ Email Test Successful!</h2>
-                            <p>This is a test email from your Blockchain Proposal Monitoring System.</p>
-                            <p><strong>Configuration Status:</strong> ✅ Working correctly</p>
-                            <p><strong>Test Time:</strong> {}</p>
-                            <hr>
-                            <p><em>If you received this email, your notification system is properly configured!</em></p>
-                            """.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                            
-                            msg.attach(MIMEText(body, 'html'))
-                            
-                            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                                server.starttls()
-                                server.login(current_email, current_password)
-                                server.send_message(msg)
-                            
-                            st.success(f"✅ Test email sent successfully to {test_recipient}!")
-                            st.info("Check your inbox for the test message.")
-                            
-                        except Exception as e:
-                            st.error(f"❌ Email test failed: {str(e)}")
-                    else:
-                        st.warning("Please enter a test email address")
+                    except Exception as e:
+                        st.error(f"❌ Email test failed: {str(e)}")
+                        
+        elif not current_recipients:
+            st.warning("⚠️ No recipient emails configured. Please add recipients in the Email Settings above.")
         else:
-            st.warning("⚠️ Configure email settings first before testing")
+            st.warning("⚠️ Configure sender email and password first before testing")
     
     # Slack Settings Tab
     with tab3:

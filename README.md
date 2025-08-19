@@ -1,297 +1,182 @@
-# 🔗 Blockchain Research & Advisory AI Agent v2.0
+# BCResearch Update — Governance Proposals Tracker (Streamlit)
 
-An intelligent AI-powered application that provides **real-time blockchain data analysis** and advisory services through conversational AI interface. Get live market data, network metrics, and improvement proposals for the top 5 L1 protocols: **Ethereum**, **Bitcoin**, **Tron**, **BSC**, and **Base**.
+A lightweight Streamlit app that tracks **L1/L2 improvement proposals** and helps PMs/engineers see potential impact quickly.
 
-## ✨ Enhanced Features v2.0
+* **Sources covered (current):**
+  **EIPs** (Ethereum), **BIPs** (Bitcoin), **TIPs** (TRON), **BEPs** (BNB Chain), **SUPs** (Optimism).
+* **How it works (current):** **Web scraping** of official sites/GitHub to list latest items, filter by status, and show basic context.
+* **Optional:** Slack/email notifications on a **daily** schedule when new proposals appear.
 
-### 🔄 **Real-Time Data Intelligence**
-- **Live Market Data**: Real-time prices, market cap, 24h volume from premium APIs
-- **Network Performance**: Current TPS, transaction fees, finality times
-- **Improvement Proposals**: Automated scraping of EIPs, TIPs, BIPs, BEPs
-- **Smart API Integration**: Seamless scaling from free APIs to premium providers
-
-### 🤖 **Enhanced AI-Powered Analysis**
-- **Context-Aware Chat**: AI responses enhanced with live blockchain data
-- **Specialized Responses**: PM-focused, Developer-focused, Gaming/DeFi insights
-- **Real-Time Integration**: Live data automatically included in conversations
-- **Multi-Protocol Intelligence**: Cross-chain analysis and recommendations
-
-### 📊 **Professional Data Management**
-- **Manual Data Refresh**: User-controlled data fetching with progress tracking
-- **Background Services**: Automatic data updates and caching
-- **API Enhancement**: Support for CoinGecko Pro, Etherscan Pro, BSCScan Pro, Moralis
-- **Cost Optimization**: Intelligent API usage with rate limiting and fallbacks
-
-### 💬 **Advanced Conversational Interface**
-- **Live Data Responses**: AI responses include current market and network data
-- **Professional Insights**: Business strategy, cost analysis, technical specifications
-- **Suggested Queries**: Smart question recommendations with live data integration
-- **Error Recovery**: Robust error handling with graceful fallbacks
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Python 3.9+** (Recommended: Python 3.11)
-- **pip** package manager
-- **Internet connection** for real-time data
-
-### Easy Installation (Recommended)
-
-#### **Windows Users**
-1. **Download/Clone the project**
-2. **Double-click** `setup.bat` to automatically set up everything
-3. **Double-click** `run_app.bat` to start the application
-4. **Open** http://localhost:8501 in your browser
-
-#### **Linux/Mac Users**
-1. **Download/Clone the project**
-2. **Run** `chmod +x setup.sh && ./setup.sh` to set up everything
-3. **Run** `./run_app.sh` to start the application
-4. **Open** http://localhost:8501 in your browser
-
-### Manual Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd BlockChainResearch-Update
-```
-
-2. **Create virtual environment**
-```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux/Mac  
-source venv/bin/activate
-```
-
-3. **Install dependencies**
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-4. **Run the application**
-```bash
-streamlit run app.py
-```
-
-5. **Access the application**
-Open your browser and navigate to `http://localhost:8501`
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file with the following variables:
-
-```env
-# ElizaOS Integration (Optional)
-ELIZAOS_API_URL=http://localhost:3000
-ELIZAOS_API_KEY=your_elizaos_api_key
-
-# Blockchain Data APIs
-ANKR_API_KEY=your_ankr_api_key
-ANKR_API_URL=https://rpc.ankr.com/multichain
-
-# Application Settings
-APP_ENV=development
-DEBUG_MODE=true
-CACHE_TTL=300
-```
-
-### Streamlit Configuration
-
-The application uses custom Streamlit configuration for optimal performance:
-- Wide layout mode
-- Custom CSS styling
-- Component caching
-- Session state management
-
-## 📱 Usage
-
-### 1. Conversational Queries
-Ask natural language questions about blockchain protocols:
-- *"Find the best blockchain for gaming with low fees"*
-- *"Compare Ethereum and Solana for DeFi applications"*
-- *"What blockchain should I use for enterprise solutions?"*
-
-### 2. Advanced Comparison
-- Select multiple protocols for side-by-side analysis
-- Interactive charts and visualizations
-- Export comparison reports
-- Custom parameter weighting
-
-### 3. Deep Analytics
-- Detailed protocol analysis
-- Performance trend analysis
-- Risk assessment
-- Competitive positioning
-
-### 4. Use Case Templates
-Pre-configured templates for common scenarios:
-- 🎮 Gaming & NFTs
-- 🏦 DeFi Applications
-- 🏢 Enterprise Solutions
-- ⚡ Payments & Transfers
-
-## 🏗️ Architecture
-
-### Component Structure
-```
-BlockChainResearch/
-├── app.py                 # Main Streamlit application
-├── config.py             # Configuration settings
-├── requirements.txt      # Python dependencies
-├── .env.example         # Environment variables template
-│
-├── components/          # UI Components
-│   ├── chat_interface.py    # Conversational AI interface
-│   ├── dashboard.py         # Main dashboard
-│   ├── comparison.py        # Protocol comparison
-│   ├── analytics.py         # Advanced analytics
-│   ├── sidebar.py          # Navigation sidebar
-│   └── header.py           # Application header
-│
-├── services/           # Backend Services
-│   ├── ai_service.py       # ElizaOS integration
-│   ├── blockchain_service.py # Blockchain data service
-│   └── data_service.py     # Data processing
-│
-├── utils/              # Utility Functions
-│   ├── session_manager.py  # Session state management
-│   ├── cache_manager.py    # Data caching
-│   └── validators.py       # Input validation
-│
-└── styles/             # Custom Styling
-    └── custom_css.py       # CSS styles and themes
-```
-
-### Technology Stack
-- **Frontend**: Streamlit with custom components
-- **Backend**: ElizaOS integration + Python services
-- **Data**: Ankr Web3 API, real-time blockchain data
-- **Visualization**: Plotly, Altair charts
-- **AI**: ElizaOS conversational AI backend
-
-## 🔗 API Integration
-
-### ElizaOS Backend
-The application integrates with ElizaOS for AI-powered conversations:
-- Natural language processing
-- Context-aware responses
-- Parameter extraction
-- Intelligent recommendations
-
-### Blockchain Data APIs
-- **Ankr Web3 API**: Real-time blockchain metrics
-- **CoinGecko API**: Market data (optional)
-- **Messari API**: Protocol fundamentals (optional)
-
-## 📊 Supported Protocols
-
-The application currently supports analysis of 15+ major blockchain protocols:
-
-| Protocol | Type | Consensus | Key Features |
-|----------|------|-----------|--------------|
-| Ethereum | Layer 1 | Proof of Stake | Leading DeFi ecosystem |
-| Solana | Layer 1 | Proof of History | High-speed gaming & apps |
-| Polygon | Layer 2 | Proof of Stake | Ethereum scaling solution |
-| BNB Chain | Layer 1 | PoS Authority | Cost-effective DeFi |
-| Avalanche | Layer 1 | Avalanche Consensus | Sub-second finality |
-| Cardano | Layer 1 | Ouroboros PoS | Academic approach |
-| Polkadot | Layer 0 | Nominated PoS | Interoperability focus |
-| ... | ... | ... | ... |
-
-## 🎯 Use Cases
-
-### For Developers
-- Find blockchain protocols matching technical requirements
-- Compare development ecosystems and tooling
-- Understand trade-offs between different architectures
-- Access real-time performance metrics
-
-### For Businesses
-- Evaluate blockchain protocols for enterprise adoption
-- Assess costs, security, and compliance requirements
-- Compare ecosystem maturity and support
-- Make data-driven blockchain selection decisions
-
-### For Researchers
-- Analyze blockchain protocol performance and trends
-- Compare technical architectures and innovations
-- Access comprehensive protocol data and metrics
-- Generate research reports and comparisons
-
-## 🔒 Security & Privacy
-
-- All API communications use HTTPS/TLS encryption
-- No sensitive user data is stored permanently
-- API keys are securely managed through environment variables
-- Session data is handled according to privacy best practices
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our contributing guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
-
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/
-
-# Format code
-black .
-isort .
-
-# Type checking
-mypy .
-```
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙋‍♂️ Support
-
-- **Documentation**: Check the `/docs` folder for detailed guides
-- **Issues**: Report bugs and request features via GitHub Issues
-- **Community**: Join our discussion forums for help and collaboration
-
-## 🚧 Roadmap
-
-### Current Version (v1.0)
-- ✅ Core AI recommendation engine
-- ✅ Real-time blockchain data integration
-- ✅ Interactive comparison dashboards
-- ✅ Conversational AI interface
-
-### Upcoming Features (v1.1)
-- 🔄 Historical trend analysis
-- 🔄 API access for developers  
-- 🔄 Advanced security analysis
-- 🔄 Multi-language support
-
-### Future Enhancements (v2.0)
-- 📋 Custom scoring algorithms
-- 📋 Integration with more data sources
-- 📋 Machine learning predictions
-- 📋 Enterprise features and SSO
+> ⚠️ Note: Real-time L1 metrics and multi-protocol analytics are **planned** but **not yet enabled**.
 
 ---
 
-**Built with ❤️ for the blockchain community**
+## Demo
 
-*Empowering better blockchain decisions through AI-powered insights*
+* Streamlit app: *(add your deployed link here, e.g. Streamlit Community Cloud)*
+  Example: `https://bcresearchupdate-...streamlit.app/`
+
+---
+
+## Features
+
+* ✅ Fetch latest improvement proposals (EIPs/BIPs/TIPs/BEPs/SUPs) via scraping
+* ✅ UI to filter/sort and open source pages
+* ✅ One-click manual refresh
+* ✅ Optional Slack/Email notifications with daily scheduler
+* 🚧 Roadmap: Real-time network/market data tiles, impact tags, CSV export, global search
+
+---
+
+## Tech Stack
+
+* **Frontend:** Streamlit
+* **Backend:** Python scraping utilities + lightweight schedulers
+* **Notifications:** Slack Webhook and/or SMTP email
+
+---
+
+## Quick Start (Local)
+
+```bash
+# 1) Clone
+git clone https://github.com/nwinnie450/BCResearch_Update.git
+cd BCResearch_Update
+
+# 2) (Optional) Create & activate venv
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+
+# 3) Install deps
+pip install -r requirements.txt
+
+# 4) Run app
+streamlit run app.py
+```
+
+Open: [http://localhost:8501](http://localhost:8501)
+
+---
+
+## Configuration
+
+Create a `.env` file in the project root. Scraping works without keys, but for notifications add:
+
+```dotenv
+# --- OPTIONAL: Slack notifications ---
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
+
+# --- OPTIONAL: Email notifications ---
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=true
+EMAIL_USERNAME=your_email@example.com
+EMAIL_PASSWORD=your_app_password
+EMAIL_TO=pm@example.com,dev@example.com
+
+# --- OPTIONAL: GitHub token (for API mode) ---
+GITHUB_TOKEN=ghp_...
+```
+
+> Check `slack_notification_system.py`, `enhanced_notification_system.py`, and `unified_notification_system.py` for exact env usage.
+
+---
+
+## How to Use
+
+1. **Launch** → Home shows latest proposals grouped by ecosystem
+2. **Filter** by status and click through to originals
+3. **Refresh** manually (top bar button)
+4. **Enable notifications (optional):**
+
+   * Add env vars above
+   * Run scheduler script
+
+---
+
+## Notifications & Scheduler
+
+* **Slack:** Compact digest via Incoming Webhook
+* **Email:** Same digest over SMTP
+* **Schedule:** Default is **once per day**
+
+Run helpers:
+
+```bash
+# Start a daily scheduler
+python start_scheduler.py
+
+# Test Slack
+python trigger_test_notification.py --channel slack
+
+# Test Email
+python trigger_test_notification.py --channel email
+```
+
+Or demo:
+
+```bash
+python demo_16_30_schedule.py
+```
+
+---
+
+## Project Structure
+
+```
+.
+├─ app.py                    # Streamlit UI
+├─ services/                 # Scrapers & data handling
+├─ scripts/                  # Scheduler/test scripts
+├─ slack_notification_system.py
+├─ enhanced_notification_system.py
+├─ unified_notification_system.py
+├─ .streamlit/               # Streamlit config
+├─ styles/                   # CSS helpers
+└─ .env.example              # Sample env
+```
+
+---
+
+## Data Sources
+
+* **EIPs:** [https://eips.ethereum.org/all](https://eips.ethereum.org/all)
+* **BIPs:** [https://bips.dev/](https://bips.dev/)
+* **TIPs:** [https://github.com/tronprotocol/tips/issues](https://github.com/tronprotocol/tips/issues)
+* **BEPs:** [https://github.com/bnb-chain/BEPs](https://github.com/bnb-chain/BEPs)
+* **SUPs:** [https://github.com/ethereum-optimism/SUPs](https://github.com/ethereum-optimism/SUPs)
+
+*(Scraping mode avoids API rate limits; GitHub API possible with token.)*
+
+---
+
+## Roadmap
+
+* [ ] Real-time L1 metrics (TPS, fees, throughput)
+* [ ] Per-proposal **Impact Tags** (e.g., consensus, dev tooling)
+* [ ] CSV/JSON export & Slack thread formatting
+* [ ] “What changed since yesterday?” diff view
+* [ ] Mobile-friendly UI
+
+---
+
+## Troubleshooting
+
+* **401 GitHub API?** Add `GITHUB_TOKEN`
+* **No Slack msg?** Check `SLACK_WEBHOOK_URL` + scheduler
+* **Email failed?** Use app-specific password, verify TLS/port
+
+---
+
+## Contributing
+
+PRs welcome! Focus on reliability of scraping + UI clarity.
+
+---
+
+## License
+
+MIT

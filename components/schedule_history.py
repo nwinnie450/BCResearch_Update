@@ -164,15 +164,55 @@ def filter_history(history: List[Dict], last_hours: int, status_filter: str) -> 
     return filtered
 
 def render_history_table(history: List[Dict]):
-    """Render history as a table"""
+    """Render history as a table with pagination"""
     
     if not history:
         st.info("No records match the current filters.")
         return
     
+    # Pagination settings
+    items_per_page = 10
+    total_items = len(history)
+    total_pages = (total_items - 1) // items_per_page + 1 if total_items > 0 else 1
+    
+    # Pagination controls
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # Initialize page number in session state
+        if 'history_page' not in st.session_state:
+            st.session_state.history_page = 1
+        
+        # Page selector
+        page = st.selectbox(
+            f"Page ({total_items} total records)",
+            range(1, total_pages + 1),
+            index=st.session_state.history_page - 1,
+            key="history_page_selector"
+        )
+        st.session_state.history_page = page
+    
+    with col1:
+        if st.button("⬅️ Previous", disabled=(page <= 1)):
+            st.session_state.history_page = max(1, page - 1)
+            st.rerun()
+    
+    with col3:
+        if st.button("Next ➡️", disabled=(page >= total_pages)):
+            st.session_state.history_page = min(total_pages, page + 1)
+            st.rerun()
+    
+    # Calculate page slice
+    start_idx = (page - 1) * items_per_page
+    end_idx = min(start_idx + items_per_page, total_items)
+    page_history = history[start_idx:end_idx]
+    
+    # Display page info
+    st.markdown(f"**Showing {start_idx + 1}-{end_idx} of {total_items} records (Page {page}/{total_pages})**")
+    
     # Convert to table data
     table_data = []
-    for record in history:
+    for record in page_history:
         timestamp = record.get('timestamp', 'Unknown')
         try:
             dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
@@ -189,9 +229,9 @@ def render_history_table(history: List[Dict]):
             'Details': (record.get('summary', 'No details')[:50] + '...') if len(record.get('summary', '')) > 50 else record.get('summary', 'No details')
         })
     
-    # Display as dataframe with custom index starting from 1
+    # Display as dataframe with custom index starting from current page start
     df = pd.DataFrame(table_data)
-    df.index = range(1, len(df) + 1)  # Set index to start from 1
+    df.index = range(start_idx + 1, start_idx + len(df) + 1)  # Set index to match actual record numbers
     
     # Configure column widths to ensure Details column is visible
     column_config = {

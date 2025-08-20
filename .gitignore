@@ -60,4 +60,6 @@ pyvenv.cfg
 data/jobs.db
 data/schedules.json
 data/email_config.json
+data/slack_config.json
 config/
+data/backups/

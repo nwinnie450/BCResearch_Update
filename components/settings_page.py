@@ -5,17 +5,19 @@ Secure configuration interface for API keys and system settings
 import streamlit as st
 import os
 import json
+import requests
 from pathlib import Path
 import getpass
+from datetime import datetime
 
-def mask_api_key(api_key: str) -> str:
-    """Mask API key for secure display - shows first 4 and last 4 digits"""
+def mask_api_key(api_key: str, reveal_chars: int = 4) -> str:
+    """Mask API key for secure display - shows first N and last N digits"""
     if not api_key:
         return "Not Set"
-    if len(api_key) <= 8:
+    if len(api_key) <= reveal_chars * 2:
         return "*" * len(api_key)
-    # Show first 4 and last 4 characters with stars in between
-    return api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:]
+    # Show first N and last N characters with stars in between
+    return api_key[:reveal_chars] + "*" * (len(api_key) - reveal_chars * 2) + api_key[-reveal_chars:]
 
 def load_env_variables():
     """Load environment variables from .env file"""
@@ -104,288 +106,7 @@ def test_slack_webhook(webhook_url: str) -> bool:
     except Exception:
         return False
 
-def render_schedule_settings():
-    """Render schedule management settings"""
-    
-    st.markdown("Configure automatic proposal monitoring schedules")
-    
-    # Load existing schedules
-    schedules_file = "data/simple_schedules.json"
-    if os.path.exists(schedules_file):
-        try:
-            with open(schedules_file, 'r') as f:
-                schedules = json.load(f)
-        except:
-            schedules = []
-    else:
-        schedules = []
-    
-    # Schedule overview
-    st.subheader("📋 Current Schedules")
-    
-    if schedules:
-        for schedule in schedules:
-            if schedule.get('enabled', True):
-                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                
-                with col1:
-                    st.write(f"**{schedule.get('name', 'Unnamed')}**")
-                    
-                with col2:
-                    st.write(schedule.get('frequency', 'Unknown'))
-                    
-                with col3:
-                    st.write(schedule.get('time', 'Unknown'))
-                    
-                with col4:
-                    status = "🟢 Active" if schedule.get('enabled', True) else "🔴 Disabled"
-                    st.write(status)
-        
-        st.divider()
-    else:
-        st.info("No schedules configured. Use the Schedule page to create schedules.")
-    
-    # Schedule settings
-    st.subheader("⚙️ Schedule Settings")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**Execution Settings:**")
-        
-        default_timeout = st.number_input(
-            "Default Timeout (minutes)",
-            min_value=1,
-            max_value=60,
-            value=int(os.getenv('SCHEDULE_TIMEOUT', '10')),
-            help="Maximum time allowed for each schedule execution"
-        )
-        
-        retry_count = st.number_input(
-            "Retry Attempts",
-            min_value=0,
-            max_value=5,
-            value=int(os.getenv('SCHEDULE_RETRIES', '3')),
-            help="Number of retry attempts on failure"
-        )
-        
-    with col2:
-        st.markdown("**Notification Settings:**")
-        
-        notify_on_success = st.checkbox(
-            "Notify on Success",
-            value=os.getenv('NOTIFY_SUCCESS', 'true').lower() == 'true',
-            help="Send notifications when schedules complete successfully"
-        )
-        
-        notify_on_failure = st.checkbox(
-            "Notify on Failure", 
-            value=os.getenv('NOTIFY_FAILURE', 'true').lower() == 'true',
-            help="Send notifications when schedules fail"
-        )
-    
-    # Data retention settings
-    st.subheader("🗄️ History & Retention")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        history_days = st.number_input(
-            "Keep History (days)",
-            min_value=1,
-            max_value=365,
-            value=int(os.getenv('HISTORY_RETENTION_DAYS', '30')),
-            help="How long to keep execution history"
-        )
-        
-    with col2:
-        max_log_entries = st.number_input(
-            "Max Log Entries",
-            min_value=10,
-            max_value=1000,
-            value=int(os.getenv('MAX_LOG_ENTRIES', '100')),
-            help="Maximum number of log entries to keep"
-        )
-    
-    # Save schedule settings
-    if st.button("💾 Save Schedule Settings", use_container_width=True):
-        schedule_settings = {
-            'schedule_timeout': str(default_timeout),
-            'schedule_retries': str(retry_count),
-            'notify_success': str(notify_on_success).lower(),
-            'notify_failure': str(notify_on_failure).lower(),
-            'history_retention_days': str(history_days),
-            'max_log_entries': str(max_log_entries)
-        }
-        
-        if save_env_variables(schedule_settings):
-            st.success("✅ Schedule settings saved successfully!")
-            st.info("Restart the scheduler to apply new settings.")
-        else:
-            st.error("❌ Failed to save schedule settings")
 
-def render_data_settings():
-    """Render data source and proposal settings"""
-    
-    st.markdown("Configure blockchain data sources and proposal settings")
-    
-    # Data source settings
-    st.subheader("🔗 Data Sources")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**Proposal Sources:**")
-        
-        # EIPs settings
-        eips_enabled = st.checkbox(
-            "Ethereum EIPs",
-            value=os.getenv('EIPS_ENABLED', 'true').lower() == 'true',
-            help="Monitor Ethereum Improvement Proposals"
-        )
-        
-        tips_enabled = st.checkbox(
-            "TRON TIPs",
-            value=os.getenv('TIPS_ENABLED', 'true').lower() == 'true', 
-            help="Monitor TRON Improvement Proposals"
-        )
-        
-        bips_enabled = st.checkbox(
-            "Bitcoin BIPs",
-            value=os.getenv('BIPS_ENABLED', 'true').lower() == 'true',
-            help="Monitor Bitcoin Improvement Proposals"  
-        )
-        
-        beps_enabled = st.checkbox(
-            "Binance BEPs",
-            value=os.getenv('BEPS_ENABLED', 'true').lower() == 'true',
-            help="Monitor Binance Evolution Proposals"
-        )
-        
-    with col2:
-        st.markdown("**Update Settings:**")
-        
-        update_interval = st.selectbox(
-            "Update Frequency",
-            ["Every 30 minutes", "Every hour", "Every 2 hours", "Every 4 hours", "Daily"],
-            index=2 if os.getenv('UPDATE_INTERVAL', '2h') == '2h' else 0,
-            help="How often to check for new proposals"
-        )
-        
-        batch_size = st.number_input(
-            "Batch Size",
-            min_value=10,
-            max_value=1000,
-            value=int(os.getenv('BATCH_SIZE', '100')),
-            help="Number of proposals to process per batch"
-        )
-        
-        rate_limit = st.number_input(
-            "Rate Limit (requests/min)",
-            min_value=1,
-            max_value=100,
-            value=int(os.getenv('RATE_LIMIT', '60')),
-            help="API request rate limit to avoid blocking"
-        )
-    
-    st.divider()
-    
-    # Data quality settings
-    st.subheader("🎯 Data Quality")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**Filtering:**")
-        
-        min_proposal_length = st.number_input(
-            "Min Proposal Length",
-            min_value=10,
-            max_value=1000,
-            value=int(os.getenv('MIN_PROPOSAL_LENGTH', '50')),
-            help="Minimum character length for proposals"
-        )
-        
-        exclude_drafts = st.checkbox(
-            "Exclude Draft Proposals",
-            value=os.getenv('EXCLUDE_DRAFTS', 'false').lower() == 'true',
-            help="Skip proposals in draft status"
-        )
-        
-    with col2:
-        st.markdown("**Processing:**")
-        
-        enable_deduplication = st.checkbox(
-            "Enable Deduplication",
-            value=os.getenv('ENABLE_DEDUPLICATION', 'true').lower() == 'true',
-            help="Remove duplicate proposals automatically"
-        )
-        
-        validate_links = st.checkbox(
-            "Validate Links",
-            value=os.getenv('VALIDATE_LINKS', 'false').lower() == 'true',
-            help="Check if proposal links are accessible"
-        )
-    
-    # Cache settings
-    st.subheader("🗂️ Cache & Storage")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        cache_duration = st.selectbox(
-            "Cache Duration",
-            ["1 hour", "6 hours", "12 hours", "24 hours"],
-            index=1 if os.getenv('CACHE_DURATION', '6h') == '6h' else 0,
-            help="How long to cache fetched data"
-        )
-        
-    with col2:
-        backup_enabled = st.checkbox(
-            "Enable Backups",
-            value=os.getenv('BACKUP_ENABLED', 'true').lower() == 'true',
-            help="Create automatic backups of proposal data"
-        )
-    
-    # Save data settings
-    if st.button("💾 Save Data Settings", use_container_width=True):
-        # Convert interval to standardized format
-        interval_map = {
-            "Every 30 minutes": "30m",
-            "Every hour": "1h", 
-            "Every 2 hours": "2h",
-            "Every 4 hours": "4h",
-            "Daily": "24h"
-        }
-        
-        cache_map = {
-            "1 hour": "1h",
-            "6 hours": "6h",
-            "12 hours": "12h", 
-            "24 hours": "24h"
-        }
-        
-        data_settings = {
-            'eips_enabled': str(eips_enabled).lower(),
-            'tips_enabled': str(tips_enabled).lower(),
-            'bips_enabled': str(bips_enabled).lower(),
-            'beps_enabled': str(beps_enabled).lower(),
-            'update_interval': interval_map.get(update_interval, '2h'),
-            'batch_size': str(batch_size),
-            'rate_limit': str(rate_limit),
-            'min_proposal_length': str(min_proposal_length),
-            'exclude_drafts': str(exclude_drafts).lower(),
-            'enable_deduplication': str(enable_deduplication).lower(),
-            'validate_links': str(validate_links).lower(),
-            'cache_duration': cache_map.get(cache_duration, '6h'),
-            'backup_enabled': str(backup_enabled).lower()
-        }
-        
-        if save_env_variables(data_settings):
-            st.success("✅ Data settings saved successfully!")
-            st.info("Changes will take effect on next data fetch.")
-        else:
-            st.error("❌ Failed to save data settings")
 
 def render_settings_page():
     """Render the settings page"""
@@ -397,7 +118,7 @@ def render_settings_page():
     st.markdown("Configure your API keys and system settings securely")
     
     # Create tabs for different setting categories
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🤖 OpenAI", "📧 Email", "💬 Slack", "📅 Schedule", "📊 Data"])
+    tab1, tab2, tab3 = st.tabs(["🤖 OpenAI", "📧 Email", "💬 Slack"])
     
     # OpenAI Settings Tab
     with tab1:
@@ -852,12 +573,61 @@ def render_settings_page():
                 placeholder="#your-channel"
             )
             
+            # Bot customization settings
+            st.subheader("🤖 Bot Appearance")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Load current slack config for bot settings
+                try:
+                    with open("data/slack_config.json", 'r') as f:
+                        slack_config = json.load(f)
+                except:
+                    slack_config = {}
+                
+                bot_username = st.text_input(
+                    "Bot Username",
+                    value=slack_config.get('username', 'Blockchain Research Agent'),
+                    placeholder="Blockchain Monitor",
+                    help="Name displayed for bot messages"
+                )
+                
+            with col2:
+                # Emoji selector for bot icon
+                emoji_options = [
+                    ":robot_face:", ":chart_with_upwards_trend:", ":bell:", 
+                    ":chains:", ":diamond_shape_with_a_dot_inside:", ":gear:",
+                    ":mag_right:", ":rocket:", ":zap:", ":warning:",
+                    ":white_check_mark:", ":bangbang:", ":exclamation:",
+                    ":computer:", ":link:", ":crystal_ball:"
+                ]
+                
+                current_emoji = slack_config.get('icon_emoji', ':robot_face:')
+                
+                try:
+                    emoji_index = emoji_options.index(current_emoji)
+                except ValueError:
+                    emoji_index = 0
+                
+                bot_icon_emoji = st.selectbox(
+                    "Bot Icon",
+                    emoji_options,
+                    index=emoji_index,
+                    help="Emoji icon for bot messages"
+                )
+            
+            # Preview bot appearance
+            if bot_username and bot_icon_emoji:
+                st.markdown(f"**Preview:** {bot_icon_emoji} **{bot_username}** will send notifications to {new_channel}")
+            
             col1, col2 = st.columns(2)
             with col1:
                 if st.form_submit_button("💾 Save"):
                     if new_webhook:
                         if new_webhook.startswith('https://hooks.slack.com/'):
-                            settings = {
+                            # Save to environment variables
+                            env_settings = {
                                 'openai_api_key': os.getenv('OPENAI_API_KEY', ''),
                                 'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
                                 'openai_max_tokens': os.getenv('OPENAI_MAX_TOKENS', '1000'),
@@ -867,9 +637,31 @@ def render_settings_page():
                                 'slack_webhook_url': new_webhook,
                                 'slack_channel': new_channel
                             }
-                            save_env_file(settings)
-                            st.success("✅ Slack settings saved!")
-                            st.rerun()
+                            save_env_file(env_settings)
+                            
+                            # Save detailed Slack config to JSON file
+                            detailed_slack_config = {
+                                'enabled': True,
+                                'webhook_url': new_webhook,
+                                'channel': new_channel,
+                                'username': bot_username,
+                                'icon_emoji': bot_icon_emoji,
+                                'setup_date': datetime.now().isoformat()
+                            }
+                            
+                            try:
+                                os.makedirs("data", exist_ok=True)
+                                with open("data/slack_config.json", 'w') as f:
+                                    json.dump(detailed_slack_config, f, indent=2)
+                                
+                                st.success("✅ Slack settings saved successfully!")
+                                st.info(f"🤖 Bot: {bot_icon_emoji} {bot_username} → {new_channel}")
+                                st.rerun()
+                                
+                            except Exception as e:
+                                st.error(f"❌ Failed to save Slack config: {str(e)}")
+                                st.success("✅ Basic settings saved to environment!")
+                                st.rerun()
                         else:
                             st.error("❌ Invalid webhook URL format")
                     else:
@@ -902,16 +694,28 @@ def render_settings_page():
             with col2:
                 if st.button("🧪 Send Test Message", type="secondary"):
                     if test_message:
-                        # Enhanced test with custom message
+                        # Enhanced test with custom message and bot settings
                         try:
+                            # Load current Slack config for bot appearance
+                            try:
+                                with open("data/slack_config.json", 'r') as f:
+                                    slack_config = json.load(f)
+                                bot_username = slack_config.get('username', 'Blockchain Research Agent')
+                                bot_icon = slack_config.get('icon_emoji', ':robot_face:')
+                            except:
+                                bot_username = 'Blockchain Research Agent'
+                                bot_icon = ':robot_face:'
+                            
                             test_payload = {
                                 "text": f"🔔 *Blockchain Monitor Test*",
+                                "username": bot_username,
+                                "icon_emoji": bot_icon,
                                 "blocks": [
                                     {
                                         "type": "header",
                                         "text": {
                                             "type": "plain_text",
-                                            "text": "🧪 Test Notification"
+                                            "text": f"{bot_icon} Test Notification"
                                         }
                                     },
                                     {
@@ -920,6 +724,19 @@ def render_settings_page():
                                             "type": "mrkdwn",
                                             "text": test_message
                                         }
+                                    },
+                                    {
+                                        "type": "section",
+                                        "fields": [
+                                            {
+                                                "type": "mrkdwn",
+                                                "text": f"*Bot:* {bot_icon} {bot_username}"
+                                            },
+                                            {
+                                                "type": "mrkdwn",
+                                                "text": f"*Channel:* {current_webhook.split('/')[-1] if current_webhook else 'Unknown'}"
+                                            }
+                                        ]
                                     },
                                     {
                                         "type": "context",
@@ -947,16 +764,6 @@ def render_settings_page():
                         st.warning("Please enter a test message")
         else:
             st.warning("⚠️ Configure Slack webhook first before testing")
-    
-    # Schedule Management Tab
-    with tab4:
-        st.header("📅 Schedule Management")
-        render_schedule_settings()
-    
-    # Data Configuration Tab  
-    with tab5:
-        st.header("📊 Data Configuration")
-        render_data_settings()
 
 if __name__ == "__main__":
     render_settings_page()

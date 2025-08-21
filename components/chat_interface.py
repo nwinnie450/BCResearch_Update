@@ -38,19 +38,22 @@ def display_chat_history():
         st.markdown("""
         <div class="chat-message bot-message">
             <strong>🤖 Enhanced AI Advisor:</strong> Hello! I'm your blockchain research specialist with 
-            <strong>Real-Time Data Integration</strong> covering all aspects of L1 protocols.
+            <strong>Improvement Proposal Analysis</strong> covering all L1 protocol developments.
             <br><br>
-            I now provide live data analysis including:
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                <strong>⚠️ Note:</strong> Live data integration is currently in development. 
+                Analysis is based on cached proposal data and may not reflect the most recent submissions.
+            </div>
+            I specialize in improvement proposal analysis including:
             <ul>
-                <li><strong>📊 Live Market Data:</strong> "Current prices", "Market analysis", "24h changes"</li>
-                <li><strong>⚡ Network Performance:</strong> "TPS comparison", "Transaction fees", "Network speed"</li>
-                <li><strong>📋 Improvement Proposals:</strong> "Latest EIPs", "Proposal counts", "Development activity"</li>
-                <li><strong>🏦 DeFi Ecosystem:</strong> "TVL analysis", "Protocol comparison", "DeFi trends"</li>
-                <li><strong>👨‍💻 Development Stats:</strong> "GitHub activity", "Code commits", "Repository insights"</li>
-                <li><strong>🎮 Gaming & Use Cases:</strong> "Best chains for gaming", "Use case optimization"</li>
+                <li><strong>📋 Latest Proposals:</strong> "Recent EIPs", "New TIPs", "BIP updates", "Development activity"</li>
+                <li><strong>📊 Proposal Analytics:</strong> "Proposal counts by status", "Protocol comparison", "Trending proposals"</li>
+                <li><strong>🔍 Deep Analysis:</strong> "Technical impact assessment", "Implementation complexity", "Community consensus"</li>
+                <li><strong>⚡ Protocol Updates:</strong> "Major network upgrades", "Protocol improvements", "Breaking changes"</li>
+                <li><strong>🏗️ Development Insights:</strong> "Active proposals", "Author analysis", "Category trends"</li>
+                <li><strong>🎯 Strategic Planning:</strong> "Roadmap analysis", "Feature comparison", "Adoption tracking"</li>
             </ul>
-            All responses now include <strong>real-time data</strong> that's automatically refreshed!<br>
-            What would you like to analyze with live blockchain data?
+            What improvement proposals would you like me to analyze?
         </div>
         """, unsafe_allow_html=True)
     
@@ -346,68 +349,68 @@ def format_finality_time(finality_value) -> str:
         return str(finality_value)
 
 def render_suggested_queries():
-    """Render suggested query buttons with real-time data integration"""
+    """Render suggested query buttons focused on improvement proposals"""
     
-    st.markdown("### 💡 Suggested Questions (🔴 Live Data)")
+    st.markdown("### 💡 Suggested Questions - Improvement Proposals")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("**📊 Market & Performance**")
+        st.markdown("**📋 Latest Proposals**")
         
-        if st.button("📈 Live Market Analysis", use_container_width=True, key="market_query"):
-            query = "Show me current market data and prices for all protocols"
+        if st.button("🆕 Recent EIPs", use_container_width=True, key="recent_eips"):
+            query = "Show me the latest Ethereum Improvement Proposals with their status and impact"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("⚡ Network Performance", use_container_width=True, key="performance_query"):
-            query = "Compare current TPS and transaction fees across all networks"
+        if st.button("🔥 Active TIPs", use_container_width=True, key="active_tips"):
+            query = "What are the most active TRON Improvement Proposals currently in development?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col2:
-        st.markdown("**🔗 Protocol Analysis**")
+        st.markdown("**📊 Proposal Analytics**")
         
-        if st.button("🏆 Complete Comparison", use_container_width=True, key="comparison_query"):
-            query = "Compare all protocols with live data - market, network, and proposals"
+        if st.button("📈 Proposal Trends", use_container_width=True, key="proposal_trends"):
+            query = "Analyze proposal submission trends across all protocols - which areas are most active?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("🎮 Gaming Blockchains", use_container_width=True, key="gaming_query"):
-            query = "Which blockchain is best for gaming based on current performance?"
+        if st.button("🏆 Top Contributors", use_container_width=True, key="top_contributors"):
+            query = "Who are the most active proposal authors and what are they working on?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col3:
-        st.markdown("**💼 PM Questions**")
+        st.markdown("**🔍 Technical Analysis**")
         
-        if st.button("💰 Cost Analysis", use_container_width=True, key="pm_cost_query"):
-            query = "What's our cost per transaction and unit economics?"
+        if st.button("⚡ Breaking Changes", use_container_width=True, key="breaking_changes"):
+            query = "Which proposals introduce breaking changes and what's their impact?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("👥 User Metrics", use_container_width=True, key="pm_user_query"):
-            query = "Show me user activity and retention metrics"
+        if st.button("🛡️ Security Updates", use_container_width=True, key="security_updates"):
+            query = "Show me proposals focused on security improvements and protocol upgrades"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col4:
-        st.markdown("**⚙️ Dev Questions**")
+        st.markdown("**🎯 Strategic Insights**")
         
-        if st.button("🖥️ Infrastructure Status", use_container_width=True, key="dev_infra_query"):
-            query = "Check RPC latency and infrastructure status"
+        if st.button("🗺️ Protocol Roadmaps", use_container_width=True, key="protocol_roadmaps"):
+            query = "Compare development roadmaps - what are the key upcoming features for each protocol?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("⛓️ Chain Health", use_container_width=True, key="dev_chain_query"):
-            query = "Analyze chain health and reorg status"
+        if st.button("📐 Implementation Status", use_container_width=True, key="implementation_status"):
+            query = "What's the implementation status of major proposals across all protocols?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()

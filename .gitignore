@@ -56,10 +56,23 @@ Scripts/
 share/
 pyvenv.cfg
 
-# Application specific
-data/jobs.db
-data/schedules.json
+# Application specific - Configuration files (sensitive)
 data/email_config.json
 data/slack_config.json
 config/
+
+# Application specific - Runtime data (exclude from production)
+data/jobs.db
+data/schedules.json
+data/schedule_history.json
+data/last_proposal_check.json
 data/backups/
+
+# Test and demo files
+test_*.py
+*_test.py
+demo_*.py
+*_demo.py
+setup_test_*.py
+final_production_test.py
+production_verification_test.py

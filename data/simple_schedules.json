@@ -1,11 +1,11 @@
 [
   {
-    "id": "20250820_101700",
-    "name": "Multi-Protocol Test - 10:17 AM",
+    "id": "production_daily",
+    "name": "Daily Blockchain Proposals Check",
     "frequency": "Daily (Every day)",
     "days": [
       "Monday",
-      "Tuesday",
+      "Tuesday", 
       "Wednesday",
       "Thursday",
       "Friday",
@@ -13,170 +13,10 @@
       "Sunday"
     ],
     "days_display": "Every day",
-    "time": "10:17 AM",
-    "time_24h": "10:17",
+    "time": "10:00 AM",
+    "time_24h": "10:00",
     "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T10:17:00.000000"
-  },
-  {
-    "id": "test_20250820_153828",
-    "name": "Test Schedule - 3:40 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "3:40 PM",
-    "time_24h": "15:40",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T15:38:28.915220"
-  },
-  {
-    "id": "test_20250820_155649",
-    "name": "Test Schedule - 3:58 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "3:58 PM",
-    "time_24h": "15:58",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T15:56:49.211201"
-  },
-  {
-    "id": "test_20250820_160622",
-    "name": "Test Schedule - 4:08 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "4:08 PM",
-    "time_24h": "16:08",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T16:06:22.728868"
-  },
-  {
-    "id": "test_20250820_161555",
-    "name": "Test Schedule - 4:17 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "4:17 PM",
-    "time_24h": "16:17",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T16:15:55.312764"
-  },
-  {
-    "id": "test_20250820_162541",
-    "name": "Test Schedule - 4:27 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "4:27 PM",
-    "time_24h": "16:27",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T16:25:41.652235"
-  },
-  {
-    "id": "test_20250820_165820",
-    "name": "Test Schedule - 5:00 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "5:00 PM",
-    "time_24h": "17:00",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T16:58:20.301604"
-  },
-  {
-    "id": "test_20250820_170925",
-    "name": "Test Schedule - 5:11 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "5:11 PM",
-    "time_24h": "17:11",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T17:09:25.994155"
-  },
-  {
-    "id": "test_20250820_172042",
-    "name": "Test Schedule - 5:22 PM",
-    "frequency": "Daily (Every day)",
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ],
-    "days_display": "Every day",
-    "time": "5:22 PM",
-    "time_24h": "17:22",
-    "enabled": true,
-    "created_date": "2025-08-20",
-    "created_at": "2025-08-20T17:20:42.939216"
+    "created_date": "2025-08-21",
+    "created_at": "2025-08-21T00:00:00.000000"
   }
 ]

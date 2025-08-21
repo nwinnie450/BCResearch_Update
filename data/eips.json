@@ -1,7 +1,7 @@
 {
-  "generated_at": 1755569380,
-  "generated_at_iso": "2025-08-19 02:09:40 UTC",
-  "count": 1007,
+  "generated_at": 1755739943,
+  "generated_at_iso": "2025-08-21 01:32:23 UTC",
+  "count": 1008,
   "protocol": "ethereum",
   "source": "https://eips.ethereum.org/all",
   "items": [
@@ -50,6 +50,22 @@
       "file_url": "https://eips.ethereum.org/EIPS/eip-7998",
       "protocol": "ethereum",
       "summary": "Turn `randao_reveal` into a VRF - Draft EIP by Alberto La Rocca (@71104), Aryaethn (@aryaethn)",
+      "source": "https://eips.ethereum.org/all",
+      "review_ends": ""
+    },
+    {
+      "number": 7997,
+      "id": "EIP-7997",
+      "title": "Deterministic Factory Predeploy",
+      "author": "Francisco Giordano (@frangio)",
+      "type": "Standards Track",
+      "category": "",
+      "status": "Draft",
+      "created": "2025-08-03",
+      "url": "https://eips.ethereum.org/EIPS/eip-7997",
+      "file_url": "https://eips.ethereum.org/EIPS/eip-7997",
+      "protocol": "ethereum",
+      "summary": "Deterministic Factory Predeploy - Draft EIP by Francisco Giordano (@frangio)",
       "source": "https://eips.ethereum.org/all",
       "review_ends": ""
     },
@@ -1597,7 +1613,7 @@
       "type": "Standards Track",
       "category": "",
       "status": "Draft",
-      "created": "2024-11-23",
+      "created": "",
       "url": "https://eips.ethereum.org/EIPS/eip-7825",
       "file_url": "https://eips.ethereum.org/EIPS/eip-7825",
       "protocol": "ethereum",

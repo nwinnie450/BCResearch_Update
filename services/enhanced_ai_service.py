@@ -4,12 +4,20 @@ Enhanced AI Service with Real-Time Data Integration
 Provides intelligent responses using live blockchain data from all sources
 """
 import re
+import os
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from services.comprehensive_realtime_data_service import comprehensive_realtime_service
 from services.live_blockchain_data import live_blockchain_data
 from services.scraped_data_service import scraped_data_service
 import streamlit as st
+
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 class EnhancedAIService:
     """Enhanced AI service that leverages comprehensive real-time data for intelligent responses"""
@@ -133,9 +141,10 @@ class EnhancedAIService:
         
         user_input_lower = user_input.lower()
         
-        # First check if this is a proposal query - these should be handled separately
-        if any(word in user_input_lower for word in ['proposal', 'eip', 'tip', 'bip', 'bep', 'improvement']):
-            return None  # Let proposal handler take care of this
+        # First check if this is a proposal query - handle with scraped data
+        proposal_keywords = ['proposal', 'eip', 'tip', 'bip', 'bep', 'improvement', 'development', 'active', 'latest', 'recent', 'status', 'count', 'implementation', 'roadmap', 'upgrade', 'protocol comparison', 'governance']
+        if any(word in user_input_lower for word in proposal_keywords):
+            return self._handle_proposal_query(user_input)  # Handle proposal queries with scraped data
         
         # Protocol detection with variations
         protocol_mappings = {
@@ -1851,6 +1860,1019 @@ I'm your AI advisor specializing in blockchain analysis with access to real-time
 - Get proposals: *"Latest EIPs"*
 
 **What aspect of the blockchain ecosystem would you like to explore?**"""
+
+    def _handle_proposal_query(self, user_input: str) -> str:
+        """Handle proposal-related queries using OpenAI analysis of scraped data"""
+        
+        try:
+            import json
+            import os
+            
+            # Load all proposal data
+            proposal_data = self._load_all_proposal_data()
+            
+            if not proposal_data:
+                return "I apologize, but I couldn't access the proposal data at the moment. Please try again later."
+            
+            # Use OpenAI to analyze the data and answer the question
+            return self._analyze_proposals_with_ai(user_input, proposal_data)
+                
+        except Exception as e:
+            return f"I apologize, but I encountered an issue analyzing proposal data: {str(e)}. Please try rephrasing your question."
+
+    def _load_all_proposal_data(self) -> Dict:
+        """Load all proposal data from scraped files"""
+        
+        import json
+        
+        protocol_files = {
+            'tips': {'name': 'TRON', 'type': 'TIPs'},
+            'eips': {'name': 'Ethereum', 'type': 'EIPs'}, 
+            'bips': {'name': 'Bitcoin', 'type': 'BIPs'},
+            'beps': {'name': 'Binance Smart Chain', 'type': 'BEPs'}
+        }
+        
+        all_data = {}
+        
+        for protocol_file, info in protocol_files.items():
+            try:
+                with open(f'data/{protocol_file}.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    items = data.get('items', [])
+                    
+                    if items:
+                        # Prepare summary statistics
+                        status_counts = {}
+                        for item in items:
+                            status = item.get('status', 'Unknown')
+                            status_counts[status] = status_counts.get(status, 0) + 1
+                        
+                        # Get recent proposals (last 10)
+                        sorted_items = sorted(items, key=lambda x: x.get('created', ''), reverse=True)
+                        recent_items = sorted_items[:10]
+                        
+                        # Count by year for activity analysis
+                        yearly_counts = {}
+                        for item in items:
+                            year = item.get('created', '')[:4] if item.get('created') else 'Unknown'
+                            yearly_counts[year] = yearly_counts.get(year, 0) + 1
+                        
+                        # Author analysis
+                        author_counts = {}
+                        for item in items:
+                            author = item.get('author', 'Unknown')[:50]  # Limit length
+                            author_counts[author] = author_counts.get(author, 0) + 1
+                        top_authors = sorted(author_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                        
+                        all_data[info['name']] = {
+                            'protocol_type': info['type'],
+                            'total_proposals': len(items),
+                            'status_distribution': status_counts,
+                            'recent_proposals': recent_items,
+                            'yearly_activity': yearly_counts,
+                            'top_authors': top_authors,
+                            'implementation_rate': status_counts.get('Final', 0) / len(items) * 100,
+                            'active_proposals': status_counts.get('Draft', 0) + status_counts.get('Last Call', 0),
+                            'last_updated': data.get('generated_at_iso', 'Unknown')
+                        }
+                        
+            except Exception as e:
+                print(f"Error loading {protocol_file}: {e}")
+                continue
+        
+        return all_data
+
+    def _analyze_proposals_with_ai(self, user_question: str, proposal_data: Dict) -> str:
+        """Use OpenAI to analyze proposal data and answer user questions"""
+        
+        import os
+        
+        # Check if OpenAI is available
+        if not os.getenv('OPENAI_API_KEY'):
+            return self._fallback_proposal_analysis(user_question, proposal_data)
+        
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            
+            # Prepare data summary for AI analysis
+            data_summary = self._prepare_data_summary(proposal_data)
+            
+            # Create AI prompt with enhanced context for specific query types
+            enhanced_context = self._get_enhanced_context_for_query(user_question, proposal_data)
+            
+            # Determine response style based on query type
+            response_style = self._determine_response_style(user_question)
+            
+            prompt = f"""You are a blockchain research analyst with access to comprehensive improvement proposal data across major protocols. 
+
+USER QUESTION: {user_question}
+
+PROPOSAL DATA SUMMARY:
+{data_summary}
+
+{enhanced_context}
+
+RESPONSE STYLE: {response_style}
+
+Please provide a {response_style} response to the user's question using this data. Be specific and use the actual data provided.
+"""
+
+            # Get AI response using configured model and settings
+            model = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+            max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', '1500'))
+            temperature = float(os.getenv('OPENAI_TEMPERATURE', '0.3'))
+            
+            # Enhanced system prompt based on response style
+            if response_style == "concise and direct":
+                system_prompt = "You are an expert blockchain analyst. Provide DIRECT, CONCISE answers with specific proposals and essential details only. Avoid lengthy analysis unless specifically requested. Focus on the exact information requested."
+            elif response_style == "comprehensive analytical":
+                system_prompt = "You are an expert blockchain analyst. Provide comprehensive analytical responses with detailed insights, trends, comparisons, and strategic implications. Include thorough analysis and context."
+            else:
+                system_prompt = "You are an expert blockchain analyst. Provide balanced, informational responses that directly answer the question with relevant context and key insights."
+            
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            
+            ai_response = response.choices[0].message.content.strip()
+            
+            # Add data freshness note
+            ai_response += f"\n\n---\n*Analysis based on proposal data last updated: {self._get_latest_update_time(proposal_data)}*"
+            
+            return ai_response
+            
+        except Exception as e:
+            print(f"OpenAI analysis failed: {e}")
+            return self._fallback_proposal_analysis(user_question, proposal_data)
+
+    def _prepare_data_summary(self, proposal_data: Dict) -> str:
+        """Prepare a concise data summary for AI analysis"""
+        
+        summary = ""
+        total_all = sum(data['total_proposals'] for data in proposal_data.values())
+        
+        summary += f"TOTAL PROPOSALS ACROSS ALL PROTOCOLS: {total_all:,}\n\n"
+        
+        for protocol, data in proposal_data.items():
+            summary += f"{protocol} ({data['protocol_type']}):\n"
+            summary += f"- Total: {data['total_proposals']}\n"
+            summary += f"- Implementation Rate: {data['implementation_rate']:.1f}% Final\n"
+            summary += f"- Active Development: {data['active_proposals']} Draft/Last Call\n"
+            
+            # Top 3 statuses
+            top_statuses = sorted(data['status_distribution'].items(), key=lambda x: x[1], reverse=True)[:3]
+            summary += f"- Status Breakdown: {', '.join([f'{status}: {count}' for status, count in top_statuses])}\n"
+            
+            # Recent activity - show all available years to give AI complete picture
+            if data['yearly_activity']:
+                # Sort years and show all with meaningful data
+                all_years = sorted([(year, count) for year, count in data['yearly_activity'].items() 
+                                  if year != 'Unknown' and count > 0], 
+                                 key=lambda x: x[0], reverse=True)
+                # Show top 5 most recent years or significant activity
+                recent_activity = dict(all_years[:8])  # Show more years for better context
+                summary += f"- Yearly Activity: {recent_activity}\n"
+            
+            # Top contributors
+            if data['top_authors']:
+                top_author = data['top_authors'][0]
+                summary += f"- Top Contributor: {top_author[0]} ({top_author[1]} proposals)\n"
+            
+            # Latest proposals - provide more detail for accuracy including titles
+            if data['recent_proposals']:
+                latest = data['recent_proposals'][:3]  # Show 3 most recent for better context
+                latest_info = []
+                for proposal in latest:
+                    title = proposal.get('title', '')[:50] + ('...' if len(proposal.get('title', '')) > 50 else '')
+                    latest_info.append(f"{proposal.get('id', 'Unknown')} - {title} ({proposal.get('status', 'Unknown')}, {proposal.get('created', 'Unknown')})")
+                summary += f"- Latest Proposals: {'; '.join(latest_info)}\n"
+            
+            summary += "\n"
+        
+        return summary
+
+    def _get_enhanced_context_for_query(self, user_question: str, proposal_data: Dict) -> str:
+        """Intelligent query analysis system - provides dynamic context for ANY proposal question"""
+        
+        # Analyze the query to understand what the user is asking for
+        query_analysis = self._analyze_user_query(user_question)
+        
+        # Generate comprehensive contextual data based on query analysis
+        context_data = self._generate_contextual_insights(query_analysis, proposal_data)
+        
+        # Format the context for AI analysis
+        return self._format_intelligent_context(query_analysis, context_data)
+    
+    def _determine_response_style(self, user_question: str) -> str:
+        """Determine appropriate response style based on question type"""
+        
+        query_lower = user_question.lower()
+        
+        # Direct answer questions - need concise, focused responses
+        direct_answer_indicators = [
+            'which', 'what', 'who', 'how many', 'list', 'show me', 
+            'breaking changes', 'security vulnerabilities', 'latest', 'recent'
+        ]
+        
+        # Analysis questions - need comprehensive responses  
+        analysis_indicators = [
+            'analyze', 'assess', 'evaluate', 'compare', 'explain', 'discuss',
+            'trends', 'patterns', 'implications', 'impact', 'strategy'
+        ]
+        
+        # Check for analysis needs first (more specific)
+        if any(indicator in query_lower for indicator in analysis_indicators):
+            return "comprehensive analytical"
+        
+        # Check for direct answer needs
+        elif any(indicator in query_lower for indicator in direct_answer_indicators):
+            return "concise and direct"
+        
+        # Default to balanced
+        else:
+            return "balanced informational"
+    
+    def _analyze_user_query(self, user_question: str) -> Dict:
+        """Analyze user query to understand intent and extract key information needs"""
+        
+        query_lower = user_question.lower()
+        
+        # Query intent detection
+        intents = {
+            'breaking_changes': ['breaking', 'break', 'incompatible', 'backward', 'deprecated'],
+            'network_upgrades': ['upgrade', 'fork', 'hardfork', 'network', 'activation'],
+            'security': ['security', 'vulnerability', 'exploit', 'attack', 'cryptographic'],
+            'complexity': ['complexity', 'technical', 'difficult', 'complex', 'implementation'],
+            'comparison': ['compare', 'comparison', 'versus', 'vs', 'difference', 'better'],
+            'timeline': ['when', 'timeline', 'schedule', 'roadmap', 'planned', 'future'],
+            'status': ['status', 'progress', 'state', 'current', 'active', 'draft'],
+            'authors': ['author', 'contributor', 'developer', 'team', 'who'],
+            'impact': ['impact', 'effect', 'consequence', 'affect', 'influence'],
+            'trends': ['trend', 'pattern', 'activity', 'growth', 'decline'],
+            'category': ['type', 'category', 'kind', 'classification'],
+            'recent': ['recent', 'latest', 'new', 'current', 'today'],
+            'count': ['how many', 'count', 'number', 'total', 'amount']
+        }
+        
+        # Protocol detection
+        protocols = {
+            'ethereum': ['ethereum', 'eth', 'eip'],
+            'bitcoin': ['bitcoin', 'btc', 'bip'],
+            'tron': ['tron', 'trx', 'tip'],
+            'binance': ['binance', 'bsc', 'bnb', 'bep']
+        }
+        
+        detected_intents = []
+        detected_protocols = []
+        
+        # Detect intents
+        for intent, keywords in intents.items():
+            if any(keyword in query_lower for keyword in keywords):
+                detected_intents.append(intent)
+        
+        # Detect specific protocols mentioned
+        for protocol, keywords in protocols.items():
+            if any(keyword in query_lower for keyword in keywords):
+                detected_protocols.append(protocol)
+        
+        # Determine primary intent
+        primary_intent = detected_intents[0] if detected_intents else 'general'
+        
+        return {
+            'primary_intent': primary_intent,
+            'all_intents': detected_intents,
+            'protocols': detected_protocols,
+            'query': user_question,
+            'query_lower': query_lower
+        }
+    
+    def _generate_contextual_insights(self, query_analysis: Dict, proposal_data: Dict) -> Dict:
+        """Generate relevant insights based on query analysis"""
+        
+        insights = {}
+        primary_intent = query_analysis['primary_intent']
+        protocols = query_analysis['protocols']
+        
+        # Generate intent-specific insights
+        if primary_intent == 'breaking_changes':
+            insights['breaking_analysis'] = self._analyze_breaking_changes_comprehensive(proposal_data)
+        
+        if primary_intent == 'network_upgrades':
+            insights['upgrade_analysis'] = self._analyze_network_upgrades(proposal_data)
+        
+        if primary_intent == 'security':
+            insights['security_analysis'] = self._analyze_security_proposals(proposal_data)
+        
+        if primary_intent == 'authors':
+            insights['author_analysis'] = self._analyze_top_contributors(proposal_data)
+        
+        if primary_intent == 'comparison':
+            insights['protocol_comparison'] = self._generate_protocol_comparison_data(proposal_data)
+        
+        if primary_intent == 'trends':
+            insights['trend_analysis'] = self._analyze_activity_trends(proposal_data)
+        
+        if primary_intent == 'status':
+            insights['status_analysis'] = self._analyze_proposal_statuses(proposal_data)
+        
+        # Always include relevant protocol-specific data if protocols mentioned
+        if protocols:
+            insights['protocol_specific'] = self._extract_protocol_specific_data(protocols, proposal_data)
+        
+        # Always include general statistics for context
+        insights['general_stats'] = self._generate_general_statistics(proposal_data)
+        
+        return insights
+    
+    def _format_intelligent_context(self, query_analysis: Dict, context_data: Dict) -> str:
+        """Format the intelligent context for AI analysis"""
+        
+        intent = query_analysis['primary_intent']
+        protocols = query_analysis['protocols']
+        
+        context = f"""
+INTELLIGENT QUERY ANALYSIS:
+- Primary Intent: {intent.upper()}
+- Question Type: {', '.join(query_analysis['all_intents']).upper()}
+- Target Protocols: {', '.join(protocols).upper() if protocols else 'ALL PROTOCOLS'}
+
+RELEVANT ANALYSIS GUIDANCE:
+"""
+        
+        # Add intent-specific guidance
+        guidance_map = {
+            'breaking_changes': "Focus on incompatible changes, hard forks, consensus modifications, API changes",
+            'network_upgrades': "Analyze major protocol upgrades, activation dates, coordination requirements",
+            'security': "Identify security fixes, vulnerability patches, cryptographic improvements",
+            'complexity': "Assess technical difficulty, implementation scope, dependency requirements",
+            'comparison': "Compare protocols across relevant metrics, highlight differences and similarities",
+            'timeline': "Focus on implementation dates, roadmaps, scheduled activations",
+            'status': "Analyze current proposal states, progress through development stages",
+            'authors': "Highlight contributor activity, expertise areas, collaboration patterns",
+            'impact': "Assess potential effects on network, users, developers, ecosystem",
+            'trends': "Identify patterns in activity, popular proposal types, development focus",
+            'recent': "Prioritize latest proposals, current activity, emerging patterns"
+        }
+        
+        for detected_intent in query_analysis['all_intents']:
+            if detected_intent in guidance_map:
+                context += f"- {guidance_map[detected_intent]}\n"
+        
+        # Add relevant contextual data
+        if 'breaking_analysis' in context_data:
+            breaking = context_data['breaking_analysis']
+            if breaking['high_risk']:
+                context += f"\nHIGH RISK BREAKING CHANGES IDENTIFIED ({len(breaking['high_risk'])}):\n"
+                for item in breaking['high_risk'][:5]:
+                    context += f"- {item}\n"
+        
+        if 'upgrade_analysis' in context_data:
+            upgrades = context_data['upgrade_analysis']
+            context += f"\nNETWORK UPGRADE CANDIDATES ({len(upgrades)}):\n"
+            for item in upgrades[:5]:
+                context += f"- {item}\n"
+        
+        if 'security_analysis' in context_data:
+            security = context_data['security_analysis']
+            context += f"\nSECURITY-RELATED PROPOSALS ({len(security)}):\n"
+            for item in security[:5]:
+                context += f"- {item}\n"
+        
+        if 'author_analysis' in context_data:
+            authors = context_data['author_analysis']
+            context += f"\nTOP CONTRIBUTORS ANALYSIS:\n"
+            for protocol, top_author in authors.items():
+                context += f"- {protocol}: {top_author}\n"
+        
+        if 'protocol_specific' in context_data:
+            context += f"\nPROTOCOL-SPECIFIC DATA:\n"
+            for protocol, data in context_data['protocol_specific'].items():
+                context += f"- {protocol}: {data}\n"
+        
+        # Add general statistics for context
+        if 'general_stats' in context_data:
+            stats = context_data['general_stats']
+            context += f"\nGENERAL STATISTICS:\n"
+            context += f"- Total Proposals: {stats['total']}\n"
+            context += f"- Most Active Protocol: {stats['most_active']}\n"
+            context += f"- Highest Implementation Rate: {stats['best_implementation']}\n"
+        
+        return context
+    
+    def _get_breaking_changes_context(self, proposal_data: Dict) -> str:
+        """Enhanced context for breaking changes analysis using advanced detection"""
+        
+        # Analyze all proposals for breaking change indicators
+        breaking_analysis = self._analyze_breaking_changes_comprehensive(proposal_data)
+        
+        context = """
+BREAKING CHANGES ANALYSIS CONTEXT:
+Breaking changes are protocol modifications that:
+- Make older versions incompatible
+- Require mandatory upgrades  
+- Change consensus rules
+- Modify core APIs or data structures
+- Deprecate existing functionality
+- Change network parameters
+- Introduce new validation rules
+- Modify transaction formats
+
+ADVANCED DETECTION CRITERIA:
+1. **High Priority Keywords**: "hard fork", "breaking", "incompatible", "deprecated", "obsolete"
+2. **Technical Indicators**: "consensus", "validation", "signature", "hash", "encoding"
+3. **Version Indicators**: "v2", "migration", "upgrade path", "backward"
+4. **API Changes**: "interface", "method", "parameter", "field"
+5. **Protocol Changes**: "protocol", "network", "block", "transaction"
+
+BREAKING CHANGE PATTERNS:
+- Proposals that change existing behavior
+- Core protocol modifications (EIP: Core, TIP: Core, BIP: Standards Track)
+- Cryptographic algorithm updates
+- Network parameter changes
+- Transaction format modifications
+"""
+        
+        # Add comprehensive breaking change analysis
+        if breaking_analysis['high_risk']:
+            context += f"\n\nHIGH RISK BREAKING CHANGES IDENTIFIED:\n"
+            for item in breaking_analysis['high_risk'][:8]:
+                context += f"- {item}\n"
+        
+        if breaking_analysis['medium_risk']:
+            context += f"\n\nMODERATE RISK CANDIDATES:\n"
+            for item in breaking_analysis['medium_risk'][:5]:
+                context += f"- {item}\n"
+        
+        if breaking_analysis['recent_finals']:
+            context += f"\n\nRECENT FINALIZED CHANGES (Potential Active Breaking Changes):\n"
+            for item in breaking_analysis['recent_finals'][:8]:
+                context += f"- {item}\n"
+        
+        return context
+    
+    def _analyze_breaking_changes_comprehensive(self, proposal_data: Dict) -> Dict:
+        """Comprehensive analysis of breaking changes across all proposals"""
+        
+        high_risk_keywords = [
+            'hard fork', 'hardfork', 'breaking', 'incompatible', 'deprecated', 
+            'obsolete', 'consensus', 'validation', 'signature', 'hash algorithm',
+            'encoding', 'protocol upgrade', 'network upgrade', 'mandatory'
+        ]
+        
+        medium_risk_keywords = [
+            'upgrade', 'migration', 'v2', 'version', 'interface', 'api', 
+            'method', 'parameter', 'field', 'core', 'protocol', 'network',
+            'block', 'transaction', 'cryptographic', 'algorithm'
+        ]
+        
+        high_risk = []
+        medium_risk = []
+        recent_finals = []
+        
+        for protocol, data in proposal_data.items():
+            proposals = data.get('recent_proposals', [])
+            
+            for proposal in proposals[:15]:  # Check more proposals
+                title = proposal.get('title', '').lower()
+                summary = proposal.get('summary', '').lower()
+                status = proposal.get('status', '')
+                created = proposal.get('created', '')
+                
+                # Combine title and summary for analysis
+                full_text = f"{title} {summary}"
+                
+                # High risk detection
+                high_risk_score = sum(1 for keyword in high_risk_keywords if keyword in full_text)
+                if high_risk_score > 0:
+                    risk_level = "HIGH" if high_risk_score >= 2 else "MEDIUM-HIGH"
+                    high_risk.append(f"{protocol}: {proposal.get('id')} - {proposal.get('title')[:60]}... [{risk_level}] ({status}, {created})")
+                
+                # Medium risk detection
+                elif any(keyword in full_text for keyword in medium_risk_keywords):
+                    medium_risk.append(f"{protocol}: {proposal.get('id')} - {proposal.get('title')[:60]}... [MEDIUM] ({status}, {created})")
+                
+                # Recent finalized changes (last 2 years)
+                if status == 'Final' and created and any(year in created for year in ['2024', '2025']):
+                    if any(keyword in full_text for keyword in high_risk_keywords + medium_risk_keywords[:6]):
+                        recent_finals.append(f"{protocol}: {proposal.get('id')} - {proposal.get('title')[:60]}... [ACTIVE] ({created})")
+        
+        return {
+            'high_risk': high_risk,
+            'medium_risk': medium_risk,
+            'recent_finals': recent_finals
+        }
+    
+    def _analyze_network_upgrades(self, proposal_data: Dict) -> List[str]:
+        """Analyze network upgrades across all protocols"""
+        upgrades = []
+        upgrade_keywords = ['upgrade', 'fork', 'hardfork', 'activation', 'network', 'protocol upgrade']
+        
+        for protocol, data in proposal_data.items():
+            for proposal in data.get('recent_proposals', [])[:10]:
+                title = proposal.get('title', '').lower()
+                summary = proposal.get('summary', '').lower()
+                full_text = f"{title} {summary}"
+                
+                if any(keyword in full_text for keyword in upgrade_keywords):
+                    upgrades.append(f"{protocol}: {proposal.get('id')} - {proposal.get('title')[:50]}... ({proposal.get('status')}, {proposal.get('created')})")
+        
+        return upgrades
+    
+    def _analyze_security_proposals(self, proposal_data: Dict) -> List[str]:
+        """Analyze security-related proposals with enhanced detection"""
+        security_proposals = []
+        
+        # Comprehensive security keywords
+        security_keywords = [
+            'security', 'vulnerability', 'exploit', 'attack', 'cryptographic', 
+            'signature', 'hash', 'validation', 'verification', 'authentication',
+            'encryption', 'secure', 'protection', 'safety', 'breach', 'fix',
+            'patch', 'mitigation', 'defense', 'selfdestruct', 'disallow',
+            'prevent', 'restrict', 'limit', 'verify', 'check', 'validate'
+        ]
+        
+        for protocol, data in proposal_data.items():
+            # Check more proposals, not just recent ones
+            all_proposals = data.get('recent_proposals', [])
+            
+            seen_ids = set()  # Prevent duplicates
+            
+            for proposal in all_proposals[:25]:  # Check top 25 instead of 10
+                proposal_id = proposal.get('id', '')
+                
+                # Skip duplicates
+                if proposal_id in seen_ids:
+                    continue
+                seen_ids.add(proposal_id)
+                
+                title = proposal.get('title', '').lower()
+                summary = proposal.get('summary', '').lower()
+                full_text = f"{title} {summary}"
+                
+                # Enhanced detection with keyword scoring
+                found_keywords = [kw for kw in security_keywords if kw in full_text]
+                
+                if found_keywords:
+                    # Prioritize proposals with multiple security indicators
+                    priority = len(found_keywords)
+                    status = proposal.get('status', 'Unknown')
+                    created = proposal.get('created', 'Unknown')
+                    
+                    security_proposals.append({
+                        'protocol': protocol,
+                        'proposal': f"{protocol}: {proposal_id} - {proposal.get('title')[:60]}... ({status}, {created})",
+                        'priority': priority,
+                        'keywords': found_keywords[:3]
+                    })
+            
+        # Sort by priority (most security keywords first) and return formatted strings
+        security_proposals.sort(key=lambda x: x['priority'], reverse=True)
+        return [item['proposal'] for item in security_proposals]
+    
+    def _analyze_top_contributors(self, proposal_data: Dict) -> Dict[str, str]:
+        """Analyze top contributors across protocols"""
+        contributors = {}
+        for protocol, data in proposal_data.items():
+            if data.get('top_authors'):
+                top_author = data['top_authors'][0]
+                contributors[protocol] = f"{top_author[0]} ({top_author[1]} proposals)"
+        return contributors
+    
+    def _generate_protocol_comparison_data(self, proposal_data: Dict) -> Dict[str, str]:
+        """Generate protocol comparison data"""
+        comparison = {}
+        for protocol, data in proposal_data.items():
+            comparison[protocol] = f"Total: {data['total_proposals']}, Implementation: {data['implementation_rate']:.1f}%, Active: {data['active_proposals']}"
+        return comparison
+    
+    def _analyze_activity_trends(self, proposal_data: Dict) -> Dict[str, str]:
+        """Analyze activity trends across protocols"""
+        trends = {}
+        for protocol, data in proposal_data.items():
+            yearly_data = data.get('yearly_activity', {})
+            recent_years = {year: count for year, count in yearly_data.items() 
+                          if year in ['2022', '2023', '2024', '2025'] and count > 0}
+            trends[protocol] = f"Recent activity: {recent_years}"
+        return trends
+    
+    def _analyze_proposal_statuses(self, proposal_data: Dict) -> Dict[str, str]:
+        """Analyze proposal statuses across protocols"""
+        status_analysis = {}
+        for protocol, data in proposal_data.items():
+            status_dist = data.get('status_distribution', {})
+            top_statuses = sorted(status_dist.items(), key=lambda x: x[1], reverse=True)[:3]
+            status_analysis[protocol] = f"Top statuses: {dict(top_statuses)}"
+        return status_analysis
+    
+    def _extract_protocol_specific_data(self, protocols: List[str], proposal_data: Dict) -> Dict[str, str]:
+        """Extract specific data for mentioned protocols"""
+        protocol_data = {}
+        protocol_mapping = {
+            'ethereum': 'Ethereum',
+            'bitcoin': 'Bitcoin', 
+            'tron': 'TRON',
+            'binance': 'Binance Smart Chain'
+        }
+        
+        for protocol in protocols:
+            mapped_protocol = protocol_mapping.get(protocol)
+            if mapped_protocol and mapped_protocol in proposal_data:
+                data = proposal_data[mapped_protocol]
+                protocol_data[mapped_protocol] = f"Recent: {len(data.get('recent_proposals', []))} proposals, Implementation: {data.get('implementation_rate', 0):.1f}%"
+        
+        return protocol_data
+    
+    def _generate_general_statistics(self, proposal_data: Dict) -> Dict[str, str]:
+        """Generate general statistics across all protocols"""
+        total = sum(data['total_proposals'] for data in proposal_data.values())
+        
+        # Find most active protocol
+        most_active = max(proposal_data.items(), key=lambda x: x[1]['total_proposals'])
+        
+        # Find best implementation rate
+        best_impl = max(proposal_data.items(), key=lambda x: x[1]['implementation_rate'])
+        
+        return {
+            'total': f"{total:,}",
+            'most_active': f"{most_active[0]} ({most_active[1]['total_proposals']} proposals)",
+            'best_implementation': f"{best_impl[0]} ({best_impl[1]['implementation_rate']:.1f}%)"
+        }
+    
+    def _get_network_upgrade_context(self, proposal_data: Dict) -> str:
+        """Enhanced context for network upgrade analysis"""
+        
+        context = """
+NETWORK UPGRADE ANALYSIS CONTEXT:
+Focus on proposals that represent major protocol upgrades:
+- Hard forks and soft forks
+- Consensus mechanism changes
+- Network parameter modifications
+- Major feature implementations
+
+Look for upgrade-related indicators:
+1. Titles containing: "upgrade", "fork", "hardfork", "activation"
+2. Core protocol modifications
+3. Coordinated implementation dates
+4. Cross-client compatibility requirements
+"""
+        
+        return context
+    
+    def _get_complexity_analysis_context(self, proposal_data: Dict) -> str:
+        """Enhanced context for technical complexity analysis"""
+        
+        context = """
+TECHNICAL COMPLEXITY ANALYSIS CONTEXT:
+Assess complexity based on:
+1. Implementation scope (Core > Interface > Informational)
+2. Dependency requirements
+3. Cross-system impacts
+4. Development timeline indicators
+
+COMPLEXITY INDICATORS:
+- High: Core consensus changes, cryptographic implementations
+- Medium: Interface modifications, new standards
+- Low: Documentation updates, process improvements
+
+Consider proposal categories and implementation rates as complexity indicators.
+"""
+        
+        return context
+    
+    def _get_security_context(self, proposal_data: Dict) -> str:
+        """Enhanced context for security-focused analysis"""
+        
+        context = """
+SECURITY ANALYSIS CONTEXT:
+Focus on security-relevant proposals:
+- Cryptographic improvements
+- Vulnerability fixes
+- Security standard implementations
+- Access control modifications
+
+Look for security indicators in titles:
+- "security", "vulnerability", "fix", "patch"
+- "cryptography", "signature", "hash"
+- "access", "permission", "validation"
+"""
+        
+        return context
+
+    def _get_latest_update_time(self, proposal_data: Dict) -> str:
+        """Get the most recent update time across all protocols"""
+        
+        latest_times = [data.get('last_updated', '') for data in proposal_data.values() if data.get('last_updated')]
+        if latest_times:
+            return max(latest_times)
+        return "Unknown"
+
+    def _fallback_proposal_analysis(self, user_question: str, proposal_data: Dict) -> str:
+        """Fallback analysis when OpenAI is not available"""
+        
+        # Provide basic analysis without AI
+        if not proposal_data:
+            return "No proposal data available for analysis."
+        
+        response = "## Blockchain Proposal Analysis\n\n"
+        
+        # Basic stats
+        total_all = sum(data['total_proposals'] for data in proposal_data.values())
+        response += f"**Total proposals across all protocols**: {total_all:,}\n\n"
+        
+        # Protocol comparison
+        response += "### Protocol Overview:\n"
+        sorted_protocols = sorted(proposal_data.items(), key=lambda x: x[1]['total_proposals'], reverse=True)
+        
+        for protocol, data in sorted_protocols:
+            response += f"- **{protocol}**: {data['total_proposals']} {data['protocol_type']} ({data['implementation_rate']:.1f}% Final)\n"
+        
+        # Most active development
+        active_development = sorted(proposal_data.items(), key=lambda x: x[1]['active_proposals'], reverse=True)
+        response += f"\n### Most Active Development:\n"
+        for protocol, data in active_development[:3]:
+            response += f"- **{protocol}**: {data['active_proposals']} active proposals\n"
+        
+        response += f"\n*Note: OpenAI analysis unavailable. For detailed insights, please ensure API key is configured.*"
+        
+        return response
+
+    def _analyze_proposal_status_distribution(self, protocol_files: Dict) -> str:
+        """Analyze proposal status distribution across all protocols"""
+        
+        import json
+        
+        response = "## Proposal Status Distribution Across All Protocols\n\n"
+        
+        total_all = 0
+        all_stats = {}
+        
+        for protocol_file, info in protocol_files.items():
+            try:
+                with open(f'data/{protocol_file}.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    items = data.get('items', [])
+                    
+                    if items:
+                        # Count by status
+                        status_counts = {}
+                        for item in items:
+                            status = item.get('status', 'Unknown')
+                            status_counts[status] = status_counts.get(status, 0) + 1
+                        
+                        total = len(items)
+                        total_all += total
+                        
+                        response += f"### {info['name']} ({info['type']}): {total} total\n"
+                        
+                        # Sort statuses by count (descending)
+                        sorted_statuses = sorted(status_counts.items(), key=lambda x: x[1], reverse=True)
+                        
+                        for status, count in sorted_statuses[:5]:  # Show top 5 statuses
+                            percentage = (count / total) * 100
+                            response += f"- **{status}**: {count} ({percentage:.1f}%)\n"
+                        
+                        # Store for summary
+                        all_stats[info['name']] = {
+                            'total': total,
+                            'statuses': status_counts,
+                            'implementation_rate': status_counts.get('Final', 0) / total * 100
+                        }
+                        
+                        response += "\n"
+                        
+            except Exception as e:
+                response += f"### {info['name']}: Data unavailable\n\n"
+                continue
+        
+        # Add cross-protocol summary
+        response += f"## Cross-Protocol Analysis\n\n"
+        response += f"**Total Proposals**: {total_all:,} across all protocols\n\n"
+        
+        # Show implementation rates
+        response += "### Implementation Success Rates:\n"
+        for protocol, stats in sorted(all_stats.items(), key=lambda x: x[1]['implementation_rate'], reverse=True):
+            rate = stats['implementation_rate']
+            response += f"1. **{protocol}**: {rate:.1f}% Final status\n"
+        
+        response += "\n### Key Insights:\n"
+        if all_stats:
+            best_protocol = max(all_stats.items(), key=lambda x: x[1]['implementation_rate'])
+            response += f"- **{best_protocol[0]}** demonstrates highest governance efficiency with {best_protocol[1]['implementation_rate']:.1f}% final implementations\n"
+            response += "- High Final percentages indicate mature governance processes\n"
+            response += "- Draft proposals represent active development pipeline\n"
+        
+        return response
+
+    def _analyze_latest_proposals(self, protocol_files: Dict, user_input: str) -> str:
+        """Analyze latest proposals across protocols"""
+        
+        import json
+        from datetime import datetime
+        
+        response = "## Latest Blockchain Proposals\n\n"
+        
+        all_recent = []
+        
+        for protocol_file, info in protocol_files.items():
+            try:
+                with open(f'data/{protocol_file}.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    items = data.get('items', [])
+                    
+                    if items:
+                        # Sort by created date (most recent first)
+                        sorted_items = sorted(items, key=lambda x: x.get('created', ''), reverse=True)
+                        recent_items = sorted_items[:3]  # Top 3 recent
+                        
+                        response += f"### Recent {info['name']} Proposals:\n"
+                        for item in recent_items:
+                            proposal_id = item.get('id', 'Unknown')
+                            title = item.get('title', 'Unknown')[:60] + "..." if len(item.get('title', '')) > 60 else item.get('title', 'Unknown')
+                            status = item.get('status', 'Unknown')
+                            created = item.get('created', 'Unknown')
+                            
+                            response += f"- **{proposal_id}** - {title} ({status}, {created})\n"
+                        
+                        response += "\n"
+                        
+                        # Add to global recent list
+                        for item in recent_items:
+                            item['protocol_name'] = info['name']
+                            all_recent.append(item)
+                        
+            except Exception as e:
+                response += f"### {info['name']}: Data unavailable\n\n"
+                continue
+        
+        # Add analysis section
+        if all_recent:
+            response += "### Analysis:\n"
+            # Count by status
+            status_count = {}
+            for item in all_recent:
+                status = item.get('status', 'Unknown')
+                status_count[status] = status_count.get(status, 0) + 1
+            
+            response += f"- **Total recent proposals analyzed**: {len(all_recent)}\n"
+            for status, count in sorted(status_count.items(), key=lambda x: x[1], reverse=True):
+                response += f"- **{status}**: {count} proposals\n"
+            
+            # Most active protocol
+            protocol_count = {}
+            for item in all_recent:
+                protocol = item.get('protocol_name', 'Unknown')
+                protocol_count[protocol] = protocol_count.get(protocol, 0) + 1
+            
+            most_active = max(protocol_count.items(), key=lambda x: x[1])
+            response += f"- **Most active protocol**: {most_active[0]} with {most_active[1]} recent proposals\n"
+        
+        return response
+
+    def _analyze_specific_protocol_proposals(self, protocol_files: Dict, user_input: str) -> str:
+        """Analyze proposals for a specific protocol"""
+        
+        import json
+        
+        # Determine which protocol is being asked about
+        target_protocol = None
+        if any(word in user_input for word in ['tron', 'tip']):
+            target_protocol = ('tips', 'TRON', 'TIPs')
+        elif any(word in user_input for word in ['ethereum', 'eip']):
+            target_protocol = ('eips', 'Ethereum', 'EIPs')
+        elif any(word in user_input for word in ['bitcoin', 'bip']):
+            target_protocol = ('bips', 'Bitcoin', 'BIPs')
+        elif any(word in user_input for word in ['bsc', 'bep', 'binance']):
+            target_protocol = ('beps', 'Binance Smart Chain', 'BEPs')
+        
+        if not target_protocol:
+            return "I couldn't determine which specific protocol you're asking about. Please specify TRON, Ethereum, Bitcoin, or BSC."
+        
+        protocol_file, protocol_name, proposal_type = target_protocol
+        
+        try:
+            with open(f'data/{protocol_file}.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                items = data.get('items', [])
+                
+                if not items:
+                    return f"No {proposal_type} data available for {protocol_name}."
+                
+                response = f"## {protocol_name} {proposal_type} Analysis\n\n"
+                
+                # Basic stats
+                total = len(items)
+                response += f"**Total {proposal_type}**: {total}\n\n"
+                
+                # Status breakdown
+                status_counts = {}
+                for item in items:
+                    status = item.get('status', 'Unknown')
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                
+                response += "### Status Distribution:\n"
+                for status, count in sorted(status_counts.items(), key=lambda x: x[1], reverse=True):
+                    percentage = (count / total) * 100
+                    response += f"- **{status}**: {count} ({percentage:.1f}%)\n"
+                
+                # Recent activity
+                sorted_items = sorted(items, key=lambda x: x.get('created', ''), reverse=True)
+                recent_items = sorted_items[:5]
+                
+                response += f"\n### Recent {proposal_type}:\n"
+                for item in recent_items:
+                    proposal_id = item.get('id', 'Unknown')
+                    title = item.get('title', 'Unknown')[:50] + "..." if len(item.get('title', '')) > 50 else item.get('title', 'Unknown')
+                    status = item.get('status', 'Unknown')
+                    created = item.get('created', 'Unknown')
+                    
+                    response += f"- **{proposal_id}**: {title} ({status}, {created})\n"
+                
+                # Implementation rate
+                final_count = status_counts.get('Final', 0)
+                impl_rate = (final_count / total) * 100
+                response += f"\n### Key Metrics:\n"
+                response += f"- **Implementation rate**: {impl_rate:.1f}% ({final_count} Final out of {total})\n"
+                response += f"- **Active development**: {status_counts.get('Draft', 0)} Draft proposals\n"
+                
+                return response
+                
+        except Exception as e:
+            return f"I encountered an error analyzing {protocol_name} proposals: {str(e)}"
+
+    def _analyze_general_proposals(self, protocol_files: Dict) -> str:
+        """Provide general proposal overview across all protocols"""
+        
+        import json
+        
+        response = "## Blockchain Improvement Proposals Overview\n\n"
+        
+        total_all = 0
+        protocol_summaries = []
+        
+        for protocol_file, info in protocol_files.items():
+            try:
+                with open(f'data/{protocol_file}.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    items = data.get('items', [])
+                    
+                    if items:
+                        total = len(items)
+                        total_all += total
+                        
+                        # Get status breakdown
+                        status_counts = {}
+                        for item in items:
+                            status = item.get('status', 'Unknown')
+                            status_counts[status] = status_counts.get(status, 0) + 1
+                        
+                        final_count = status_counts.get('Final', 0)
+                        impl_rate = (final_count / total) * 100
+                        
+                        protocol_summaries.append({
+                            'name': info['name'],
+                            'type': info['type'],
+                            'total': total,
+                            'implementation_rate': impl_rate,
+                            'top_status': max(status_counts.items(), key=lambda x: x[1])
+                        })
+                        
+            except Exception as e:
+                continue
+        
+        # Sort by total proposals
+        protocol_summaries.sort(key=lambda x: x['total'], reverse=True)
+        
+        response += f"**Total proposals across all protocols**: {total_all:,}\n\n"
+        
+        response += "### Protocol Overview:\n"
+        for summary in protocol_summaries:
+            response += f"- **{summary['name']}**: {summary['total']} {summary['type']} ({summary['implementation_rate']:.1f}% Final)\n"
+        
+        response += "\n### Key Insights:\n"
+        if protocol_summaries:
+            # Most proposals
+            most_proposals = protocol_summaries[0]
+            response += f"- **{most_proposals['name']}** leads in proposal volume with {most_proposals['total']} {most_proposals['type']}\n"
+            
+            # Best implementation rate
+            best_impl = max(protocol_summaries, key=lambda x: x['implementation_rate'])
+            response += f"- **{best_impl['name']}** has the highest implementation rate at {best_impl['implementation_rate']:.1f}%\n"
+            
+            response += "- All protocols maintain active development with ongoing proposals\n"
+        
+        response += "\n**💡 Ask me specific questions like:**\n"
+        response += "- \"Show me TRON proposal status\"\n"
+        response += "- \"What are the latest EIPs?\"\n"
+        response += "- \"Compare implementation rates\"\n"
+        
+        return response
 
     def _generate_fallback_response(self, user_input: str) -> str:
         """Generate fallback response when real-time data is unavailable"""

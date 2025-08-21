@@ -358,59 +358,59 @@ def render_suggested_queries():
     with col1:
         st.markdown("**📋 Latest Proposals**")
         
-        if st.button("🆕 Recent EIPs", use_container_width=True, key="recent_eips"):
-            query = "Show me the latest Ethereum Improvement Proposals with their status and impact"
+        if st.button("📋 Show Latest Proposals", use_container_width=True, key="latest_proposals"):
+            query = "Show me the latest proposals from all protocols"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("🔥 Active TIPs", use_container_width=True, key="active_tips"):
-            query = "What are the most active TRON Improvement Proposals currently in development?"
+        if st.button("🆕 Recent EIPs", use_container_width=True, key="recent_eips"):
+            query = "Show me the latest Ethereum Improvement Proposals"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col2:
-        st.markdown("**📊 Proposal Analytics**")
+        st.markdown("**📊 Proposals by Status**")
         
-        if st.button("📈 Proposal Trends", use_container_width=True, key="proposal_trends"):
-            query = "Analyze proposal submission trends across all protocols - which areas are most active?"
+        if st.button("✅ Final Proposals", use_container_width=True, key="final_proposals"):
+            query = "Show me all proposals with Final status"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("🏆 Top Contributors", use_container_width=True, key="top_contributors"):
-            query = "Who are the most active proposal authors and what are they working on?"
+        if st.button("📝 Draft Proposals", use_container_width=True, key="draft_proposals"):
+            query = "Show me all proposals with Draft status"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col3:
-        st.markdown("**🔍 Technical Analysis**")
+        st.markdown("**🔍 Protocol Specific**")
         
-        if st.button("⚡ Breaking Changes", use_container_width=True, key="breaking_changes"):
-            query = "Which proposals introduce breaking changes and what's their impact?"
+        if st.button("🟡 TRON Proposals", use_container_width=True, key="tron_proposals"):
+            query = "Show me TRON Improvement Proposals (TIPs)"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("🛡️ Security Updates", use_container_width=True, key="security_updates"):
-            query = "Show me proposals focused on security improvements and protocol upgrades"
+        if st.button("🟠 Bitcoin Proposals", use_container_width=True, key="bitcoin_proposals"):
+            query = "Show me Bitcoin Improvement Proposals (BIPs)"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
     
     with col4:
-        st.markdown("**🎯 Strategic Insights**")
+        st.markdown("**📈 Simple Analysis**")
         
-        if st.button("🗺️ Protocol Roadmaps", use_container_width=True, key="protocol_roadmaps"):
-            query = "Compare development roadmaps - what are the key upcoming features for each protocol?"
+        if st.button("📊 Count by Protocol", use_container_width=True, key="count_by_protocol"):
+            query = "How many proposals does each protocol have?"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
         
-        if st.button("📐 Implementation Status", use_container_width=True, key="implementation_status"):
-            query = "What's the implementation status of major proposals across all protocols?"
+        if st.button("📈 Status Summary", use_container_width=True, key="status_summary"):
+            query = "Show me a summary of proposal statuses across all protocols"
             st.session_state.chat_input_counter = getattr(st.session_state, 'chat_input_counter', 0) + 1
             process_user_message(query, enhanced_ai_service)
             st.rerun()
